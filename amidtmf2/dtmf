@@ -1,0 +1,109 @@
+#!/bin/sh
+
+# crontab 
+# {
+#	매일 04시에 실행
+#	0	4	*	*	*	~/bin/dtmf reset >> /var/log/dtmf/processmon.log 2>&1
+# }
+
+program=amidtmf
+script=$0
+
+OPHOME=${HOME}
+export OPHOME
+OPBIN=$OPHOME/bin
+export OPBIN
+PATH=/sbin:${PATH}
+export PATH
+export LD_LIBRARY_PATH=/usr/local/lib
+
+start_dtmf()
+{
+	cd $OPBIN
+	if [ "$1" ]; then
+		if [ "$2" ]; then
+			$OPBIN/${program} $1 $2 &
+		else
+			$OPBIN/${program} $1 &
+		fi
+	else
+		$OPBIN/${program} &
+	fi
+}
+
+stop_dtmf()
+{
+	CNT=`pidof ${program}|wc -w`
+	if [ "$CNT" = "0" ]; then
+		echo "실행되는 프로그램이 없습니다! (" ${program} ")"
+	else
+		if [ "$CNT" != "1" ]; then
+			echo "실행되는 프로그램이 둘 이상입니다! (" ${program} ")"
+		else
+			# kill -s SIGINT `pidof ${program}`
+			kill -2 `pidof ${program}`
+			echo ok... 
+		fi
+	fi
+}
+
+
+stat_p()
+{
+	echo ------------------------------------------------------------------------------
+	CNT=`pidof ${program}|wc -w`
+	if [ "$CNT" = "0" ]; then
+		echo "   실행되는 프로그램이 없습니다!."
+	else
+		ps -ef|grep ${program}|grep `pidof ${program}`
+	fi
+	echo ------------------------------------------------------------------------------
+}
+
+stat_info()
+{
+	CNT=`pidof ${program}|wc -w`
+	if [ "$CNT" = "0" ]; then
+		echo "   실행되는 프로그램이 없습니다!."
+	else
+		PID=`pidof ${program}`
+		# kill -s SIGUSR2 $PID
+		kill -12 $PID
+	fi
+}
+
+stat_reset()
+{
+	CNT=`pidof ${program}|wc -w`
+	if [ "$CNT" = "0" ]; then
+		echo "   실행되는 프로그램이 없습니다!."
+	else
+		PID=`pidof ${program}`
+		# kill -s SIGUSR1 $PID
+		kill -10 $PID
+	fi
+}
+
+# main
+	Param=$1
+
+	case ${Param} in
+	start)		start_dtmf $2 $3;;
+	stop)		stop_dtmf ;;
+	status)		stat_p ;;
+	ps)			stat_p ;;
+	info)		stat_info ;;
+	reset)		stat_reset ;;
+	*)
+		path=$( echo ${script%/*} )
+		this=$( echo ${script##*/} )
+		echo ------------------------------------------------------------------------------
+		echo "usage: ${this} { start | stop | status | ps | info } [http port] [http thread count]"
+		echo "working folder: ${path}"
+		echo "current folder:" `pwd`
+		echo ------------------------------------------------------------------------------
+		;;
+	esac
+	
+
+

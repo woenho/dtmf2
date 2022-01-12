@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{7829a979-d0bd-42b1-bdad-3255ae43d005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{da8ae871-6c4e-4599-acc0-bb955dac83ec}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+    <None Include="build.sh" />
+    <None Include="Makefile" />
+    <None Include="src\handle_form.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\md5.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\mod_duktape.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\mod_http2.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\mod_lua.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\mod_lua_shared.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\mod_mbedtls.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\mod_zlib.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\openssl_dl.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\response.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\sha1.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\timer.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="src\wolfssl_extras.inl">
+      <Filter>src</Filter>
+    </None>
+    <None Include="procmon" />
+    <None Include="crontab" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ws_client.c" />
+    <ClCompile Include="src\civetweb.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="logger.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\civetweb.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\civetweb_private_lua.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\CMakeLists.txt">
+      <Filter>src</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

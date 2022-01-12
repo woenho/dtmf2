@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# crontab -e
+# {
+#	매 분마다 실행
+#	*	*	*	*	*	~/bin/procmon start >> /var/log/dtmf/processmon.log 2>&1
+#	매일 04시에 실행
+#	0	4	*	*	*	~/bin/dtmf reset >> /var/log/dtmf/processmon.log 2>&1
+# }
+
+server=amidtmf
+program=processmon
+script=$0
+
+OPHOME=${HOME}
+export OPHOME
+OPBIN=$OPHOME/bin
+export OPBIN
+PATH=/sbin:${PATH}
+export PATH
+export LOG_DISPLAY=120
+
+cd $OPBIN
+
+CNT=`pidof ${program}|wc -w`
+today=$(date "+%Y-%m-%d %H:%M:%S")
+
+if [ "$1" = "stop" ]; then
+	if [ "$CNT" = "1" ]; then
+		echo "${today} Okey..."
+		#kill -s SIGINT `pidof ${program}`
+		kill -2 `pidof ${program}`
+	else
+		echo "${today} Nothing to to..."
+	fi
+elif [ "$1" = "status" ] || [ "$1" = "ps" ]; then
+	echo ------------------------------------------------------------------------------
+	serverCnt=`pidof ${server}|wc -w`
+	if [ "$serverCnt" != "0" ]; then
+		serverID=`pidof ${server}`
+		ps -ef|grep $server|grep $serverID
+	else
+		echo "${today} ${server} is not running..."
+	fi
+	programCnt=`pidof ${program}|wc -w`
+	if [ "$programCnt" != "0" ]; then
+		programID=`pidof ${program}`
+		ps -ef|grep ${program}|grep ${programID}
+	else
+		echo "${today} ${program} is not running..."
+	fi
+	echo ------------------------------------------------------------------------------
+elif [ "$1" = "start" ]; then
+	if [ "$CNT" = "0" ]; then
+		# 2초 정도 기다렸다가 다음 프로세스를 시작하자.
+		sleep 2
+		${OPBIN}/${program} &
+		echo "${today} processmon is startup now... ${OPBIN}/${program}"
+	else 
+		echo "${today} processmon is already running... pid=`pidof ${program}`"
+	fi
+else
+	echo "${today} Line input is $0 $1 $2"
+	echo "${today} Usage: procmon {start | stop | status}"
+fi

@@ -1,0 +1,203 @@
+
+=================================================================================
+PBX1 (Inbound 교환기)
+-------------------
+1. trunk
+    : pjsip.aor.conf 에서 실제 트렁크의 주소 확인
+    {
+        [DTMFGW]
+        type=aor
+        qualify_frequency=60
+        contact=sip:192.168.1.113:5060
+
+        [PBX2]
+        type=aor
+        qualify_frequency=60
+        contact=sip:192.168.1.107:5060
+    }
+    : pjsip.endpoint.conf 에 pjsip 트렁크인 DTMFGW, PBX2 설정 확인
+    {
+        [DTMFGW]
+        type=endpoint
+        transport=0.0.0.0-udp
+        context=DTMFGW
+        disallow=all
+        allow=ulaw,alaw,gsm,g726,g722,h264,mpeg4
+        aors=DTMFGW
+        send_connected_line=false
+        language=en
+        user_eq_phone=no
+        t38_udptl=no
+        t38_udptl_ec=none
+        fax_detect=no
+        trust_id_inbound=no
+        t38_udptl_nat=no
+        rtp_symmetric=yes
+        dtmf_mode=auto
+
+        [PBX2]
+        type=endpoint
+        transport=0.0.0.0-udp
+        context=PBX2
+        disallow=all
+        allow=ulaw,alaw,gsm,g726,g722,h264,mpeg4
+        aors=PBX2
+        send_connected_line=false
+        language=en
+        user_eq_phone=no
+        t38_udptl=no
+        t38_udptl_ec=none
+        fax_detect=no
+        trust_id_inbound=no
+        t38_udptl_nat=no
+        rtp_symmetric=yes
+        dtmf_mode=auto
+    }
+
+2. dialplan
+    : extentions_custom.conf
+    {
+        ; -- 인입콜 처리 컨텍스트
+        [1000]
+        exten => _X.,1,NoOp(${EXTEN}, Transfer to DTMF Gateway)
+        same => n,Dial(PJSIP/${EXTEN}@DTMFGW,,r)
+        same => n,Hangup()
+
+        ; -- DTMF 서버에서 리턴된 콜 처리 컨텍스트
+        [DTMFGW]
+        exten => _X.,1,NoOp(${EXTEN}, Transfer to PBX2)
+        same => n,Dial(PJSIP/${EXTEN}@PBX2,,r)
+        same => n,Hangup()
+
+        ; -- DTMF서버에서 refer 요청한 콜 처리 컨텍스트
+        [from-internal-xfer]
+        exten => _X.,1,NoOp(${EXTEN}, Refer to PBX2)
+        same => n,Dial(PJSIP/${EXTEN},,r)
+        same => n,Hangup()
+    }
+    : extentions_additional.conf
+    {
+        [globals]        
+        ....
+        TRANSFER_CONTEXT = from-internal-xfer
+        ....
+        #include globals_custom.conf <<-- 재지정 가능 (??)
+    }
+
+=================================================================================
+PBX2 (DTMF server)
+-------------------
+1. trunk
+    : pjsip.aor.conf 에서 실제 트렁크의 주소 확인
+    {
+        [PBX1]
+        type=aor
+        qualify_frequency=60
+        contact=sip:192.168.1.112:5060
+    }
+    : pjsip.endpoint.conf 에 pjsip 트렁크인 DTMFGW, PBX2 설정 확인
+    {
+        [PBX1]
+        type=endpoint
+        transport=0.0.0.0-udp
+        context=DTMF
+        disallow=all
+        allow=ulaw,alaw,gsm,g726,g722,h264,mpeg4
+        aors=PBX1
+        send_connected_line=false
+        language=en
+        user_eq_phone=no
+        t38_udptl=no
+        t38_udptl_ec=none
+        fax_detect=no
+        trust_id_inbound=no
+        t38_udptl_nat=no
+        rtp_symmetric=yes
+        dtmf_mode=auto
+    }
+
+2. dialplan
+    {
+        ; -- DTMF서버에 인입된 콜은 바로 리턴하며 B2BUA 기능만 활성화한다
+        [DTMF]
+        exten => _X.,1,NoOp(${EXTEN}, inbound from PBX1)
+        same => n,Set(CHANNEL(hangup_handler_push)=handlerHangupForDTMF,s,1(${EXTEN}));
+        same => n,UserEvent(DTMF_START,Callee: ${EXTEN})
+        same => n,Dial(PJSIP/${EXTEN}@PBX1,,r)
+        same => n,Hangup()
+
+        ; -- REFER  요청 시 처리로 Dial() 대신 Transfer() 가 사용되어진다
+        ; -- Transfer 구분에 매우 특이하게 'sip:' 가 들어간다
+        [TRANSFER]
+        exten => _X.,1,NoOp(${EXTEN}, REFER to PBX1)
+        same => n,Transfer(PJSIP/sip:${EXTEN}@PBX1)
+        same => n,NoOp(TRANSFERSTATUS = ${TRANSFERSTATUS}, TRANSFERSTATUSPROTOCOL = ${TRANSFERSTATUSPROTOCOL})
+        same => n,Hangup()
+
+        ; -- Hangup 시 관리하는 B2BUA 채널정보를 클리어하기 위한 것임
+        [handlerHangupForDTMF]
+        exten => s,1,NoOp(channel=${CHANNEL}, exten=${ARG1}, uniqueid=${UNIQUEID})
+        same => n,UserEvent(DTMF_STOP,Callee: ${ARG1})
+        same => n,Return()
+    }
+
+3. amidtmf : ami를 이용한 DTMF 처리 메인 프로세스
+    {
+
+    }
+    
+=================================================================================
+PBX3 (D-ARS 서버)
+-------------------
+1. trunk
+    : pjsip.aor.conf 에서 실제 트렁크의 주소 확인
+    {
+        [PBX1]
+        type=aor
+        qualify_frequency=60
+        contact=sip:192.168.1.112:5060
+    }
+    : pjsip.endpoint.conf 에 pjsip 트렁크인 DTMFGW, PBX2 설정 확인
+    {
+        [PBX1]
+        type=endpoint
+        transport=0.0.0.0-udp
+        context=PBX1
+        disallow=all
+        allow=ulaw,alaw,gsm,g726,g722,h264,mpeg4
+        aors=PBX1
+        send_connected_line=false
+        language=en
+        user_eq_phone=no
+        t38_udptl=no
+        t38_udptl_ec=none
+        fax_detect=no
+        trust_id_inbound=no
+        t38_udptl_nat=no
+        rtp_symmetric=yes
+        dtmf_mode=auto
+    }
+
+2. dialplan
+    : D-ARS 에서는 최종 수신된 번호에 따라 각 사이트별 업무처리를 한다
+    : 이하 다아알플랜은 그냥 참고만..
+    {
+        [PBX1]
+        exten => 8003,1,NoOp(8003, D-ARS Started)
+        same => n,Answer()
+        same => n,Wait(1)
+        same => n,Playback(hello-world)
+        same => n,Wait(300)
+        same => n,Hangup()
+
+        exten => _X.,1,NoOp(phone direct test state=${DEVICE_STATE(PJSIP/${EXTEN})} )
+        same => n, GotoIf($["${DEVICE_STATE(PJSIP/${EXTEN})}"!="NOT_INUSE"]?play_ment)
+        same => n, Dial(PJSIP/${EXTEN})
+        same => n, Goto(waitdisconnect)
+        same => n(play_ment), Answer
+        same => n, Wait(1)
+        same => n, Playback(hello-world)
+        same => n(waitdisconnect), Wait(600)
+        same => n, Hangup
+    }
+

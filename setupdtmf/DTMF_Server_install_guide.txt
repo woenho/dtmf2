@@ -1,0 +1,280 @@
+
+manager_custom.conf
+{
+    [call]
+    secret = call
+    permit=127.0.0.1/255.255.255.0
+    read = user,call,dtmf,system
+    write = all
+    writetimeout = 100
+}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++
+crontab -e
+{
+	#매 분마다 실행
+	* * * * * ~/bin/procmon start >> /var/log/dtmf/processmon.log 2>&1
+	#매일 04시에 실행
+	0 4 * * * ~/bin/dtmf reset >> /var/log/dtmf/processmon.log 2>&1
+}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++
+nano /etc/logrotate.d/amidtmf
+----------------------------------
+/var/log/dtmf/processmon.log
+/var/log/udplogd/udplogd_26000.log
+/var/log/dtmf/amidtmf.log {
+    weekly
+    missingok
+    dateext
+    rotate 12
+    notifempty
+    sharedscripts
+    create 0644 유저명 그룹명
+    postrotate
+    ls -la /var/log/dtmf > /dev/null 2>&1
+    endscript
+    su 유저명 그룹명
+}
+----------------------------------
+
+++++++++++++++++++++++++++++++++++++++++++++++++++
+CentOs 초기서버에서 설치
+{
+    yum -y install json-c-devel json-c-doc.noarch json-c
+    yum install -y libmemcached libmemcached-devel memcached-devel memcached
+    vi /etc/sysconfig/memcached
+    {
+        PORT="11211"
+        USER="memcached"
+        MAXCONN="1024"
+        CACHESIZE="64"
+        OPTIONS="-l 127.0.0.1,0.0.0.0 -U 0"
+    }
+    systemctl enable memcached
+    service memcached start
+    service  memcached status
+    --service memcached start
+    --service memcached stop
+    --service memcached restart
+    == libev4.33
+    {
+        cd /usr/src/libev-4.33
+        ./configure
+        make all install
+    }
+    == cd openssl-1.1.1l
+    {
+        cd /usr/src/openssl-1.1.1l
+        ./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl shared
+        make all install
+        ll /usr/local/ssl
+        vi /etc/ld.so.conf.d/openssl-1.1.1l.conf
+        {/usr/local/ssl/lib}
+        ldconfig -v|grep ssl
+        ln -s /usr/local/ssl/lib/libssl.so.1.1 /usr/lib64/libssl.so.1.1
+        ln -s /usr/local/ssl/lib/libcrypto.so.1.1 /usr/lib64/libcrypto.so.1.1
+        mv /usr/bin/openssl /usr/bin/openssl1.0.2
+        ln -s /usr/local/ssl/bin/openssl /usr/bin/openssl
+        openssl version
+        /usr/local/ssl/bin/openssl version
+        ldd /usr/bin/openssl
+    }
+    ### asterisk setting
+    {
+        trunck
+        {
+            [InboundPBX]
+        }
+        dialplan-inbound
+        {
+            [INBOUND]
+            exten => _X.,1,NoOp(${EXTEN}, Transfer to DTMF Gateway)
+            same => n,Dial(PJSIP/${EXTEN}@DTMF,,r)
+            same => n,Hangup()
+
+            [DTMFGW]
+            exten => _X.,1,NoOp(${EXTEN}, Transfer to IVR)
+            same => n,Dial(PJSIP/${EXTEN}@IVR,,r)
+            same => n,Hangup()
+
+            [from-internal-xfer]
+            exten => _X.,1,NoOp(${EXTEN}, Refer to callcenter)
+            same => n,Dial(PJSIP/${EXTEN},,r)
+            same => n,Hangup()
+
+        }
+        dialplan
+        {
+            [DTMF]
+            exten => _X.,1,NoOp(${EXTEN}, inbound from InboundPBX)
+            same => n,Set(CHANNEL(hangup_handler_push)=handlerHangupForDTMF,s,1(${EXTEN}));
+            same => n,UserEvent(DTMF_START,Callee: ${EXTEN})
+            same => n,Dial(PJSIP/${EXTEN}@InboundPBX,,r)
+            same => n,Hangup()
+
+            [TRANSFER]
+            exten => _X.,1,NoOp(${EXTEN}, REFER to InboundPBX)
+            same => n,Transfer(PJSIP/sip:${EXTEN}@InboundPBX)
+            same => n,NoOp(TRANSFERSTATUS = ${TRANSFERSTATUS}, TRANSFERSTATUSPROTOCOL = ${TRANSFERSTATUSPROTOCOL})
+            same => n,Hangup()
+
+            [handlerHangupForDTMF]
+            exten => s,1,NoOp(channel=${CHANNEL}, exten=${ARG1}, uniqueid=${UNIQUEID})
+            same => n,UserEvent(DTMF_STOP,Callee: ${ARG1})
+            same => n,Return()
+
+        }
+        manager
+        {
+            [call]
+            secret = call
+            permit=127.0.0.1/255.255.255.0
+            read = call,dtmf,system
+            write = all
+            writetimeout = 100
+        }
+        dialplan-IVR
+        {
+            [from-inbound]
+            exten => _X.,1,NoOp(${EXTEN}, Transfer to IVR)
+            same => n,Answer
+            same => n,Wait(1)
+            same => n,Playback(hello-world)
+            same => n,Wait(300)
+            same => n,Hangup()
+        }
+    }
+}
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++
+{
+    1. yum 설치
+    2. apache 설치
+}
+{
+    1. asterisk-16-current-16.18.0.tar.gz (asterisk 16.18) -> 16.22
+    2. freepbx-15.0-latest.tgz (FreePbx 15.0.17.53) -> 15.0.17.62
+    3. libev-4.33.tar.gz (libev 4.33)
+    4. openssl-1.1.1l.tar.gz (openssl 1.1.1l)
+    5. memcached
+    6. DTMF Server Project & AsyncThreadPool project는 visual studio project 에서 연결하여 사용한다
+}
+
+tar {
+    tar xvfz asterisk-16-current-16.18.0.tar.gz
+    tar xvfz freepbx-15.0-latest.tgz
+    tar xvfz libev-4.33.tar.gz
+    tar xvfz openssl-1.1.1l.tar.gz
+}
+
+dir {
+    libev-4.33
+    openssl-1.1.1l
+    asterisk-16.18.0
+    freepbx
+
+}
+
+pre {
+    sestatus --> disabled 확인 필요
+}
+
+asterisk{
+    {
+        adduser asterisk -m -c "Asterisk User"
+        firewall-cmd --zone=public --add-port=80/tcp --permanent
+        firewall-cmd --reload
+        yum -y install lynx tftp-server unixODBC mysql-connector-odbc mariadb-server mariadb \
+  httpd ncurses-devel sendmail sendmail-cf sox newt-devel libxml2-devel libtiff-devel \
+  audiofile-devel gtk2-devel subversion kernel-devel git crontabs cronie \
+  cronie-anacron wget vim uuid-devel sqlite-devel net-tools gnutls-devel python-devel texinfo \
+  libuuid-devel
+  
+        ## php install
+        {
+            # error
+            yum remove php*
+            yum -y install php56w php56w-pdo php56-php-mysqlnd php56w-mysql php56w-mbstring php56w-pear php56w-process php56w-xml php56w-opcache php56w-ldap php56w-intl php56w-soap
+            --------------
+            # success in dtmf 4
+            # repo 추가 작업 이후...... 어느단계서 됬는지 ??
+            {
+                rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+                rpm -Uvh https://mirror.webtatic.com/yum/el7/webtatic-release.rpm
+            }
+            yum -y install php56-php php56-php-cli.x86_64 php56-php-common.x86_64 php56-php-gd.x86_64 php56-php-pdo.x86_64 php56-php-pear.noarch php56-php-xml.x86_64 php56-php-xmlrpc.x86_64
+            /usr/bin/php56 -v
+            ln -s /opt/remi/php56/root/usr/bin/php /usr/bin/php
+        }
+        ## node.js 8 or higher
+        {
+            cd /usr/src
+            curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+            yum install -y nodejs
+            node -v
+        }
+-------------------------------------
+        # mysql
+        systemctl enable mariadb.service
+        systemctl start mariadb
+        mysql_secure_installation
+-------------------------------------
+        # enable & start Apache
+        systemctl enable httpd.service
+        systemctl start httpd.service
+-------------------------------------
+        # error
+        pear install Console_Getopt 
+    }
+    
+    cd /usr/src/asterisk-16.18.0/
+    ./contrib/scripts/get_mp3_source.sh
+    contrib/scripts/install_prereq install
+    ./configure --libdir=/usr/lib64 --with-jansson-bundled --with-pjproject-bundled
+
+    make menuselect  <<--- [*] format_mp3  선택
+    --- After selecting 'Save & Exit' you can then continue
+
+    make all
+    make install
+    make samples
+    make config
+    ldconfig
+    chkconfig asterisk off
+
+    --- Set Asterisk ownership permissions.
+
+    chown asterisk. /var/run/asterisk
+    chown -R asterisk. /etc/asterisk
+    chown -R asterisk. /var/{lib,log,spool}/asterisk
+    chown -R asterisk. /usr/lib64/asterisk
+    chown -R asterisk. /var/www/
+
+    vi /etc/sysconfig/asterisk
+    {
+        AST_USER=”asterisk”
+        AST_GROUP=”asterisk”
+    }
+}
+
+freepbx {
+    cd /usr/src/freepbx
+    ./start_asterisk start
+    ./install -n
+
+    -- home page 에 들어 갔을 때 "can not connect to asterisk" 가 나오면
+    -- ./install -n 다시한다 (manager.conf 에서 admin user의 secret 이 틀림)
+    1) fwconsole ma install pm2 2) fwconsole ma enable pm2
+
+    -- 만일 tcp 80 port를 다른 곳에서 사용 중이라면 /etc/httpd/conf/httpd.conf 의 기본 포트를 변경한다
+    80 -> 8011
+}
+
+memcached test
+----------------------------------
+get mykey 
+stats settings
+stats items
+stats cachedump 3 100

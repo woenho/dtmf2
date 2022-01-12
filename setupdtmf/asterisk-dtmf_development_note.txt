@@ -1,0 +1,49 @@
+목적: 개발작업 로그를 남김으로서 개발시 발생했던 상황을 잊지 않기 위함
+----------------
+1. refer 는 AMI Action BlindTransfer 명령을 통하여 수행( 이때 AMI action 대상채널은 반드시 Dest channel이어야 함)
+    refer 처리를 하기 위하여는 인입단 PBX(asterisk 기준)에 
+    file extensions_additional.conf { TRANSFER_CONTEXT = from-internal-xfer }
+    TRANSFER 용 다이알플랜 컨텍스트(from-internal-xfer)가 지정되어 있어야 하며
+    해당 컨텍스트(from-internal-xfer)에 BlindTransfer 할 대상번호에 대한 처리플로우가 있어야 한다
+    또한, PBX2(DTMF server용 asterisk)에서는 BlindTransfer 대상 번호에 Dial()을 사용하지 않고 
+    Transfer(PJSIP/sip:${EXTEN}@PBX1) 를 사용한다. 
+    PJSIP/ 다음에 sip:${EXTEN} 을 지정하는것이 특이하다
+    또한 기본적으로 refer 요청 시 최종 통화대상 번호는 dtmf 서버의 callee와는 다른 것을 지정하는 것이 맞을 것이다.
+    {
+        참조 : pbx별_Dialplan.txt, DTMF_Server_install_guide.txt
+    }
+
+2. DTMF G/W의 Dialplan
+    {
+        ; -- DTMF서버에 인입된 콜은 바로 리턴하며 B2BUA 기능만 활성화한다
+        ; ************************************
+        ; -- 이 컨택스트를 DTMF 로 고정
+        ; ************************************
+        [DTMF]
+        exten => _X.,1,NoOp(${EXTEN}, inbound from PBX1)
+        same => n,Set(CHANNEL(hangup_handler_push)=handlerHangupForDTMF,s,1(${EXTEN}));
+        same => n,UserEvent(DTMF_START,Callee: ${EXTEN})
+        same => n,Dial(PJSIP/${EXTEN}@PBX1,,r)
+        same => n,Hangup()
+
+        ; -- REFER  요청 시 처리로 Dial() 대신 Transfer() 가 사용되어진다
+        ; -- Transfer 구분에 매우 특이하게 'sip:' 가 들어간다
+        [TRANSFER]
+        exten => _X.,1,NoOp(${EXTEN}, REFER to PBX1)
+        same => n,Transfer(PJSIP/sip:${EXTEN}@PBX1)
+        same => n,NoOp(TRANSFERSTATUS = ${TRANSFERSTATUS}, TRANSFERSTATUSPROTOCOL = ${TRANSFERSTATUSPROTOCOL})
+        ; ************************************
+        ; -- 필요에 따라 이 TRANSFERSTATUS 값을 DTMF 서버로 보낼 수도 있다.......
+        ; -- 아니면 약 0.5초후에 Getvar 처리해도 될것 같다
+        ; ************************************
+        same => n,Hangup()
+
+        ; -- Hangup 시 관리하는 B2BUA 채널정보를 클리어하기 위한 것임
+        [handlerHangupForDTMF]
+        exten => s,1,NoOp(channel=${CHANNEL}, exten=${ARG1}, uniqueid=${UNIQUEID})
+        same => n,UserEvent(DTMF_STOP,Callee: ${ARG1})
+        same => n,Return()
+    }
+3. dtmf 신호발생 간격 조정이 필요한기? 확인
+4. transfer 시 처리하는 방식(context에 의한 분기. 전화번호에 의한 분기)
+
