@@ -182,17 +182,18 @@ int main(int argc, char* argv[])
 	server.setEventDisonnected(my_disconnected);
 
 	if (server.create(atoi(g_cfg.Get("HTTP", "thread", "5").c_str())
-		, "0.0.0.0", atoi(g_cfg.Get("HTTP", "port", "4060").c_str())
-		, http
-		, 4096
-		, 4096) < 1) {
+					, "0.0.0.0"
+					, atoi(g_cfg.Get("HTTP", "port", "4060").c_str())
+					, http
+					, 4096
+					, 4096) < 1) {
 		conftn("---쓰레드풀이 기동 되지 못했다....");
 		return 0;
 	}
 
 	// -------------------------------------------------------------------------------------
 
-	atp_create(3, atpfunc);
+	atp_create(atoi(g_cfg.Get("THREAD", "count", "5").c_str()), atpfunc);
 
 	// 처리할 이벤트를 등록 한다....
 
