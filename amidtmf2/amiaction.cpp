@@ -14,7 +14,7 @@ int set_callinfo(const char* caller, CallInfo_t* info)
 
 	char* now = get_datetime();
 
-	sprintf(buf, "W:%.1d:%s:%s:%s:%s:%s:%s:"
+	sprintf(buf, "D:%.1d:%s:%s:%s:%s:%s:%s:"
 		, info->nWebLoaded
 		, now
 		, info->szExten
@@ -38,8 +38,8 @@ int get_callinfo(const char* caller, CallInfo_t* info)
 	if (!data)
 		return 2;
 
-	// 첫 항목은 'W:' 이어야 amiweb에서 사용하는 콜러정보이다
-	if (*data != 'W') {
+	// 첫 항목은 'D:' 이어야 amidtmf2에서 사용하는 콜러정보이다
+	if (*data != 'D') {
 		free(data);
 		return 3;
 	}
@@ -129,7 +129,7 @@ ATP_STAT amiLogin(PATP_DATA atp_data)
 	}
 
 	ami_socket->sd = sd;
-	ami_socket->type = sock_client;
+	ami_socket->type = sock_user1;
 	memcpy(&ami_socket->client, &s_info, sizeof(s_info));
 	// 이 소켓은 AMI 소켓이고 이 소켓에 대이타가 들어오면 ami_event() 를 호출하라
 	ami_socket->func = ami_event;
@@ -212,6 +212,7 @@ ATP_STAT amiLogin(PATP_DATA atp_data)
 			if(!strncmp(events.key[0], "Response", 8)) {
 				if (!strncmp(events.value[0], "Success", 7)) {
 					connected = 2;
+					ami_socket->type = sock_client;
 				}
 				else {
 					conpt("AMI login failed:%s\n", get_amivalue(events,"Message"));
@@ -243,7 +244,11 @@ ATP_STAT amiLogin(PATP_DATA atp_data)
 PAMI_RESPONSE amiDeviceStatus(const char* device)
 {
 	PAMI_RESPONSE resp = new AMI_RESPONSE;
-
+	if (!ami_socket || ami_socket->type != sock_client) {
+		resp->result = 503;
+		strcpy(resp->msg, "AMI에 연결되지 않았음!");
+		return resp;
+	}
 
 
 	return resp;
@@ -252,6 +257,11 @@ PAMI_RESPONSE amiDeviceStatus(const char* device)
 PAMI_RESPONSE amiSendDtmf(const char* caller, const char* dir, const char* dtmf)
 {
 	PAMI_RESPONSE resp = NULL;
+	if (!ami_socket || ami_socket->type != sock_client) {
+		resp->result = 503;
+		strcpy(resp->msg, "AMI에 연결되지 않았음!");
+		return resp;
+	}
 
 	CallInfo_t ci = { 0 };
 
@@ -313,8 +323,15 @@ PAMI_RESPONSE amiSendDtmf(const char* caller, const char* dir, const char* dtmf)
 
 PAMI_RESPONSE amiBlindTransfer(const char* caller, const char* callee, const char* header)
 {
-	CallInfo_t ci = { 0 };
 	PAMI_RESPONSE resp = NULL;
+	if (!ami_socket || ami_socket->type != sock_client) {
+		resp = new AMI_RESPONSE;
+		resp->result = 503;
+		strcpy(resp->msg, "AMI에 연결되지 않았음!");
+		return resp;
+	}
+
+	CallInfo_t ci = { 0 };
 
 	if (get_callinfo(caller, &ci)) {
 		conft("channel get not found(caller=%s)\n", caller);

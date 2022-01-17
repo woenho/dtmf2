@@ -61,7 +61,7 @@ trace:
 
 install:
 	mkdir -p ~/bin
-	chmod 0777 dtmf
+	chmod 0755 dtmf
 	cp -p dtmf ~/bin	# 복사하면 크론탭 멈출 수 있음
 	cp $(PROGRAM).conf ~/bin
 	cp $(TARGET) $(PROGRAM)

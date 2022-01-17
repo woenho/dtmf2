@@ -92,7 +92,7 @@ PAMI_RESPONSE AMI_MANAGE::ami_sync(char* action, bool logprint)
 {
 	PAMI_RESPONSE pResponse = new AMI_RESPONSE;
 
-	if (!ami_socket || ami_socket->sd < 1) {
+	if (!ami_socket || ami_socket->type != sock_client) {
 		pResponse->result = -99;
 		strcpy(pResponse->msg, "AMI서버에 연결되지 않음");
 		return pResponse;
@@ -148,7 +148,7 @@ PAMI_RESPONSE AMI_MANAGE::ami_sync(char* action, bool logprint)
 }
 
 void AMI_MANAGE::ami_async(char* action) {
-	if (!ami_socket || ami_socket->sd < 1)
+	if (!ami_socket || ami_socket->type != sock_client)
 		return;
 
 	ami_lock();
