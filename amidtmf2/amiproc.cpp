@@ -116,7 +116,8 @@ PAMI_RESPONSE AMI_MANAGE::ami_sync(char* action, bool logprint)
 	waittime.tv_nsec = 0;
 	
 	pResponse->mode = action_requst;
-	pResp = pResponse;
+	// ami_event() 함수는 AMI_MANAGE::pResp 값이 설정 되면 response 를 대기하는 프로세스가 있다고 인식한다.
+	pResp = pResponse; // ami action에 대한 response를 받으면 ami_event() 함수가 널로 설절정해 준다.
 	write(ami_socket->sd, sdata.s, sdata.req_len);
 	int rc = pthread_cond_timedwait(&condResp, &mutexResp, &waittime);
 	if (!rc) {
@@ -267,6 +268,7 @@ TST_STAT ami_event(PTST_SOCKET psocket) {
 			} else {
 				// AMI_MANAGE::ami_sync() 함수 사용이 잘목 되었다 확인하라!!!!!
 				// AMI_MANAGE::ami_sync() 함수를 잘못 수정하면 이리올 수도 있다....
+				manage.pResp = NULL;
 				conft("AMI_MANAGE::ami_sync() 함수를 잘못 수정한것 같다. 확인하시라!");
 			}
 		}

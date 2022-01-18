@@ -42,7 +42,9 @@ typedef struct AMI_RESPONSE_T {
 
 // ami_socket 구조체 멤버 user_data 에 등록된다. 별도의 ami 연결이 필요하면 별도로 관리해야한다.
 typedef struct AMI_MANAGE_T {
-	PAMI_RESPONSE pResp;					// ami action의 결과값을 받고 싶으면 설정(AMI_MANAGE::ami_sync()에서 자동)한다. 사용자 프로그램애서는 절대 사용 금지
+	// 사용자 프로그램에서는 절대 설정 금지. 이 변수가 설정되면 ami_event() 에서는 Response 수신 시 대기프로세스를 깨워준다
+	PAMI_RESPONSE pResp;				// ami action의 결과값을 받기 위해 AMI_MANAGE::ami_sync()에서 설정하고 ami_event()함수에서 널처리한다
+	// --------------------------
 	ami_callbak func;					// AMI ACTION 이 끝났을 때 호출 함수
 	pthread_mutex_t	mutexAMI;			// AMI 명령을 보내기 위한 대기열
 	pthread_mutex_t	mutexResp;			// AMI명령에 대한 답변을 기다리는 대기열
