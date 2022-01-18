@@ -25,7 +25,7 @@ CFLAGS += -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-func
 CFLAGS += -DUSE_USEREVENT_CALLSTARTED -I../include
 CFLAGS += -D_REENTRANT -D_PTHREADS
 
-LFLAGS  = -lm -ldl -lpthread -lmemcached -ljson-c -lcrypto -L../lib 
+LFLAGS  = -lm -ldl -lpthread -lmemcached -lcrypto -L../lib 
 
 ifeq (release, $(findstring release, $(MAKECMDGOALS))) #"make clean release"으로 clean 다음에 연이어 release가 나올 수가 있다.
 	CFLAGS += $(CFLAGS_RELEASE)

@@ -212,6 +212,7 @@ char* load_file(char* path, size_t* load_len)
     return load;
 }
 
+#if defined(USING_json_c)
 json_object* decode_json_resp(json_object* jobj, const char* _key, enum json_type _type) {
 
     enum json_type type;
@@ -232,6 +233,7 @@ json_object* decode_json_resp(json_object* jobj, const char* _key, enum json_typ
     }
     return NULL;
 }
+#endif
 
 int signal_init(void (*sa)(int, siginfo_t*, void*), bool debug_sig_message)
 {

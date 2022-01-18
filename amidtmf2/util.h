@@ -30,12 +30,7 @@
 #include <strings.h>
 #include <assert.h>
 #include <dirent.h>
-#if defined(DEBIAN)
-#include <json-c/json.h>
-#else
 #include <bits/siginfo.h>
-#include <json/json.h>
-#endif
 #include <netinet/in.h>
 #include <netdb.h>
 #include <stdarg.h>
@@ -84,9 +79,9 @@ extern "C"
 	char* get_auth(const char* szChannel, const char* key, char* path);
 	char* get_memcached(const char* key);
 	int set_memcached(const char* key, const char* value, time_t tts);
-
+#if defined(USING_json_c)
 	json_object* decode_json_resp(json_object* jobj, const char* _key, enum json_type _type);
-
+#endif
 	int signal_init(void (*sa)(int, siginfo_t*, void*), bool debug_sig_message);
 	int	tcp_create(int port_no);
 	int	tcp_connect(const char* host, int port_no, struct	sockaddr_in* paddr);

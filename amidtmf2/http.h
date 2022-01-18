@@ -37,6 +37,8 @@ typedef TST_STAT httpproc(PTST_SOCKET psocket);
 
 extern map<const char*, void*> g_route;
 
+TST_STAT http(PTST_SOCKET psocket);
+// 이하는 routes.cpp 것
 TST_STAT http_dtmf(PTST_SOCKET psocket);
 TST_STAT http_transfer(PTST_SOCKET psocket);
 TST_STAT http_alive(PTST_SOCKET psocket);
