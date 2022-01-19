@@ -53,8 +53,9 @@
 	#define ADDRESS(a)		((ulong)a)
 #endif
 
-namespace tst {
+extern char tstCompileDate[20];	// tst 모듈 컴파일 할때 마다 해당 시각 설정됨
 
+namespace tst {
 	struct TST_USER_T;		// 포인터 선언..
 	struct TST_SOCKET_T;	// 포인터 선언..
 	class tstpool;			// 포인터 선언..

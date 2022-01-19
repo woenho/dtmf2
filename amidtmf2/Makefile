@@ -8,6 +8,7 @@ CXX=g++
 PROGRAM = amidtmf
 TARGET = amidtmf2
 SRCS =  http.cpp \
+		dtmfversion.cpp \
 		processevents.cpp \
 		amiaction.cpp \
 		amiproc.cpp \
@@ -31,16 +32,22 @@ ifeq (release, $(findstring release, $(MAKECMDGOALS))) #"make clean release"으�
 	CFLAGS += $(CFLAGS_RELEASE)
 	LFLAGS += -ltst -lAsyncThreadPool
 else
+	TARGET = amidtmf2_d
+	PROGRAM = amidtmf_d
 	CFLAGS += $(CFLAGS_DEBUG)
 	LFLAGS += -ltst_d -lAsyncThreadPool_d
 ifeq (debugtrace, $(findstring debugtrace, $(MAKECMDGOALS))) #"make clean debugtrace"으로 clean 다음에 연이어 debugtrace 나올 수가 있다.
 	CFLAGS += -DDEBUGTRACE
+	TARGET = amidtmf2_t
+	PROGRAM = amidtmf_t
 endif
 endif
+
+DATE = $(shell date +'char dtmfCompileDate[20] = "%Y-%m-%d %H:%M:%S";')
 
 .PHONY: all clean debug release debugtrace check install trace
 
-all: $(OBJS) $(TARGET)
+all: version $(OBJS) $(TARGET)
 
 $(TARGET):
 	$(CXX) -o $@ $(OBJS) $(LFLAGS)
@@ -51,6 +58,10 @@ debugtrace: all
 
 %.o: %.cpp
 	$(CXX) -o $@ $< -c $(CFLAGS)
+
+version:
+	echo '$(DATE)' > dtmfversion.cpp
+	echo `$(CXX) -v`
 
 check:
 	$(info os=$(OS))

@@ -33,6 +33,10 @@ int	tstpool::tcp_create(const char* ip, u_short port_no)
 	int		fd;
 	int		retry;
 
+	fprintf(stdout, "tstpool compile date : %s", tstCompileDate);
+	fflush(stdout);
+	syslog(LOG_INFO, "tstpool compile date : %s", tstCompileDate);
+
 #define MAX_RETRY		(10)
 
 	memset(&addr_in, 0x00, sizeof(addr_in));

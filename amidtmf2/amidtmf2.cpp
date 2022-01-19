@@ -2,6 +2,8 @@
 #include "http.h"
 #include "processevents.h"
 
+extern char dtmfCompileDate[20];
+
 char cfg_path[512] = { 0 };
 
 void sig_handler(int signo, siginfo_t* info, /*ucontext_t*/void* ucp)
@@ -31,6 +33,10 @@ void sig_handler(int signo, siginfo_t* info, /*ucontext_t*/void* ucp)
 		int nQueueRealtime = atp_getRealtimeQueueCount();
 		int nQueueNormal = atp_getNormalQueueCount();
 		int nIndx;
+
+		conft("atp compile date: %s", atpCompileDate);
+		conft("tst compile date: %s", tstCompileDate);
+		conft("dtmf compile date: %s", dtmfCompileDate);
 
 		conft("atp thread Realtime queue count=%d", nQueueRealtime);
 		conft("atp thread Normal queue count=%d", nQueueNormal);
@@ -66,6 +72,10 @@ void sig_handler(int signo, siginfo_t* info, /*ucontext_t*/void* ucp)
 		int nQueueRealtime = atp_getRealtimeQueueCount();
 		int nQueueNormal = atp_getNormalQueueCount();
 		int nIndx;
+
+		conft("atp compile date: %s", atpCompileDate);
+		conft("tst compile date: %s", tstCompileDate);
+		conft("dtmf compile date: %s", dtmfCompileDate);
 
 		conft("atp thread Realtime queue count=%d", nQueueRealtime);
 		conft("atp thread Normal queue count=%d", nQueueNormal);
@@ -131,6 +141,9 @@ int main(int argc, char* argv[])
 {
 	if (argc == 2 && !strcmp(argv[1], "-v")) {
 		printf("\namidtmf version 2.0\n\n");
+		printf("atp compile date: %s\n", atpCompileDate);
+		printf("tst compile date: %s\n", tstCompileDate);
+		printf("dtmf compile date: %s\n", dtmfCompileDate);
 		return 0;
 	}
 
@@ -166,6 +179,9 @@ int main(int argc, char* argv[])
 
 
 	conft("\n------------------------\n DTMF server start\n========================================");
+	conft("atp compile date: %s", atpCompileDate);
+	conft("tst compile date: %s", tstCompileDate);
+	conft("dtmf compile date: %s", dtmfCompileDate);
 
 	if (signal_init(&sig_handler, true) < 0)
 		return -1;

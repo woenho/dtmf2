@@ -89,10 +89,39 @@
     <RemoteReBuildCommandLine>make clean debugtrace</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
+  </PropertyGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
     <None Include="amidtmf.conf" />
     <None Include="amidtmf_d.conf" />
+    <None Include="amidtmf_t.conf" />
     <None Include="dtmf" />
     <None Include="Makefile" />
   </ItemGroup>
@@ -100,6 +129,7 @@
     <ClCompile Include="amiaction.cpp" />
     <ClCompile Include="amidtmf2.cpp" />
     <ClCompile Include="amiproc.cpp" />
+    <ClCompile Include="asterisk\channels\chan_pjsip.c" />
     <ClCompile Include="http.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="processevents.cpp" />

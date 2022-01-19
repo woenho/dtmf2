@@ -38,6 +38,8 @@
 #include <queue>
 #include <fstream>
 
+extern char atpCompileDate[20];
+
 // 쓰레드풀의 종료 옵션
 typedef enum {force=0,gracefully} ATP_END;
 // 워크 쓰레드의 현재 상태

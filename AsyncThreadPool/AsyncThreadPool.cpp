@@ -1,5 +1,6 @@
 
 #include "AsyncThreadPool.h"
+#include <syslog.h>
 
 using namespace std;
 
@@ -421,6 +422,10 @@ void* workthread(void* param)
 
 int atp_create(int nThreadCount, ThreadFunction realtime, ThreadFunction normal, pthread_attr_t* stAttr)
 {
+	fprintf(stdout, "atp compile date : %s", atpCompileDate);
+	fflush(stdout);
+	syslog(LOG_INFO, "atp compile date : %s", atpCompileDate);
+
 	g_nThreadCount = nThreadCount;
 	pthread_mutex_init(&mutexWork, NULL);
 	pthread_mutex_init(&hMutex, NULL);

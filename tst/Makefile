@@ -6,7 +6,7 @@
 CXX=g++
 
 LIBTST = libtst.a
-SRCS = tst.cpp 
+SRCS = tst.cpp tstversion.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 CFLAGS_RELEASE = -O2 -fPIC
@@ -27,9 +27,11 @@ endif
 
 LFLAGS  = -lm -ldl -lpthread
 
+DATE = $(shell date +'char tstCompileDate[20] = "%Y-%m-%d %H:%M:%S";')
+
 .PHONY: all clean debug release debugtrace cversion
 
-all:  cversion $(LIBTST)
+all: version $(LIBTST)
 debug: all
 release: all
 debugtrace: all
@@ -44,7 +46,8 @@ $(LIBTST): $(OBJS)
 	mkdir -p ../include
 	cp tst.h ../include
 
-cversion:
+version:
+	echo '$(DATE)' > tstversion.cpp
 	echo `$(CXX) -v`
 
 clean:
