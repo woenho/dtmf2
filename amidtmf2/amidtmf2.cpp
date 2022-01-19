@@ -148,7 +148,9 @@ int main(int argc, char* argv[])
 	}
 
 	getcwd(cfg_path, sizeof(cfg_path));
-#if defined(DEBUG)
+#if defined(DEBUGTRACE)
+	strcat(cfg_path, "/amidtmf_t.conf");
+#elif defined(DEBUG)
 	strcat(cfg_path, "/amidtmf_d.conf");
 #else
 	strcat(cfg_path, "/amidtmf.conf");
@@ -177,8 +179,13 @@ int main(int argc, char* argv[])
 	}
 	if (logmethod) free(logmethod);
 
-
-	conft("\n------------------------\n DTMF server start\n========================================");
+#if defined(DEBUGTRACE)
+	conft("\n------------------------\n debugtrace DTMF server start. pid(%d)\n========================================", getpid());
+#elif defined(DEBUG)
+	conft("\n------------------------\n debug DTMF server start. pid(%d)\n========================================", getpid());
+#else
+	conft("\n------------------------\n DTMF server start. pid(%d)\n========================================", getpid());
+#endif
 	conft("atp compile date: %s", atpCompileDate);
 	conft("tst compile date: %s", tstCompileDate);
 	conft("dtmf compile date: %s", dtmfCompileDate);

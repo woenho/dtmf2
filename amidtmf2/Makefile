@@ -40,6 +40,7 @@ ifeq (debugtrace, $(findstring debugtrace, $(MAKECMDGOALS))) #"make clean debugt
 	CFLAGS += -DDEBUGTRACE
 	TARGET = amidtmf2_t
 	PROGRAM = amidtmf_t
+	LFLAGS += -ltst_t -lAsyncThreadPool_t
 endif
 endif
 
