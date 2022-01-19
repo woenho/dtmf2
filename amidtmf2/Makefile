@@ -35,12 +35,13 @@ else
 	TARGET = amidtmf2_d
 	PROGRAM = amidtmf_d
 	CFLAGS += $(CFLAGS_DEBUG)
-	LFLAGS += -ltst_d -lAsyncThreadPool_d
 ifeq (debugtrace, $(findstring debugtrace, $(MAKECMDGOALS))) #"make clean debugtrace"으로 clean 다음에 연이어 debugtrace 나올 수가 있다.
 	CFLAGS += -DDEBUGTRACE
 	TARGET = amidtmf2_t
 	PROGRAM = amidtmf_t
 	LFLAGS += -ltst_t -lAsyncThreadPool_t
+else
+	LFLAGS += -ltst_d -lAsyncThreadPool_d
 endif
 endif
 

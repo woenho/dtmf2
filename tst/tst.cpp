@@ -33,7 +33,7 @@ int	tstpool::tcp_create(const char* ip, u_short port_no)
 	int		fd;
 	int		retry;
 
-	fprintf(stdout, "tstpool compile date : %s", tstCompileDate);
+	fprintf(stdout, "tstpool compile date : %s\n", tstCompileDate);
 	fflush(stdout);
 	syslog(LOG_INFO, "tstpool compile date : %s", tstCompileDate);
 

@@ -145,7 +145,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
+    <RemoteBuildCommandLine>~/bin/procmon stop;~/bin/dtmf stop;make clean release install</RemoteBuildCommandLine>
     <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make release clean </RemoteCleanCommandLine>
   </PropertyGroup>
@@ -166,14 +166,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
+    <RemoteBuildCommandLine>~/bin/procmon stop;~/bin/dtmf stop;make clean release install</RemoteBuildCommandLine>
     <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make release clean </RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
+    <RemoteBuildCommandLine>~/bin/procmon stop;~/bin/dtmf stop;make clean release install</RemoteBuildCommandLine>
     <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make release clean </RemoteCleanCommandLine>
   </PropertyGroup>
@@ -194,7 +194,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
+    <RemoteBuildCommandLine>~/bin/procmon stop;~/bin/dtmf stop;make clean release install</RemoteBuildCommandLine>
     <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make release clean </RemoteCleanCommandLine>
   </PropertyGroup>
