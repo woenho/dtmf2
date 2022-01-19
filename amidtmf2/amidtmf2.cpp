@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
 					, http
 					, 4096
 					, 4096) < 1) {
-		conftn("---쓰레드풀이 기동 되지 못했다....");
+		conft("---쓰레드풀이 기동 되지 못했다....");
 		return 0;
 	}
 

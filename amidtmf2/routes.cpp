@@ -68,7 +68,7 @@ TST_STAT http_transfer(PTST_SOCKET psocket)
 			// "Content-Type: text/html;charset=utf-8\r\n"
 			"Connection: close\r\n\r\n"
 			, req.http_version
-			, resp->result
+			, resp->result == 0 ? 200 : resp->result
 			, resp->msg
 		);
 		free(resp);
