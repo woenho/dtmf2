@@ -1,6 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="DebugTrace|ARM">
+      <Configuration>DebugTrace</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugTrace|ARM64">
+      <Configuration>DebugTrace</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugTrace|x64">
+      <Configuration>DebugTrace</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugTrace|x86">
+      <Configuration>DebugTrace</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|ARM">
       <Configuration>Debug</Configuration>
       <Platform>ARM</Platform>
@@ -49,6 +65,10 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Makefile</ConfigurationType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|ARM'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>Makefile</ConfigurationType>
@@ -57,11 +77,19 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Makefile</ConfigurationType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|x86'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>Makefile</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Makefile</ConfigurationType>
   </PropertyGroup>
@@ -77,12 +105,23 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Makefile</ConfigurationType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|ARM64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
+    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|ARM'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
     <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
@@ -103,6 +142,13 @@
     <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|ARM64'">
+    <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
+    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
@@ -117,6 +163,13 @@
     <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|x64'">
+    <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
+    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
@@ -125,6 +178,13 @@
     <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
+    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|x86'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
     <RemoteBuildCommandLine>make</RemoteBuildCommandLine>

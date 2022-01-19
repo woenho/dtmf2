@@ -12,13 +12,15 @@ OBJS = $(SRCS:.c=.o)
 CIVETWEB_LIB = libcivetweb.a
 
 # civetweb system_common base compile
-# make clean lib slib WITH_DEBUG=1 WITH_CPP=1  SSL_LIB=libssl.so.0
-# make install-lib install-slib install-headers WITH_DEBUG=1 WITH_CPP=1  SSL_LIB=libssl.so.0
+# make clean lib slib WITH_DEBUG=1 WITH_CPP=1  SSL_LIB=libssl.so.0 <-- openssl 1.0 버전사용
+# make install-lib install-slib install-headers WITH_DEBUG=1 WITH_CPP=1  SSL_LIB=libssl.so.0 ==> -DSSL_LIB=\"libssl.so.0\"
+# make clean lib slib WITH_DEBUG=1 WITH_CPP=1  SSL_LIB=libssl.so.1.1 <-- openssl 1.1 버전사용
+# make install-lib install-slib install-headers WITH_DEBUG=1 WITH_CPP=1  SSL_LIB=libssl.so.1.1 ==> -DSSL_LIB=\"libssl.so.1.1\"
 # ldconfig
 
 CFLAGS_RELEASE = -O2 -fPIC
 CFLAGS_DEBUG = -O0 -g -ggdb3 -DDEBUG
-CFLAGS_CIVETWEB = -Iinclude -DLINUX -DUSE_STACK_SIZE=102400 -DOPENSSL_API_1_1 -DUSE_WEBSOCKET -DNO_SSL
+CFLAGS_CIVETWEB = -Iinclude -DLINUX -DUSE_STACK_SIZE=102400 -DOPENSSL_API_1_1 -DUSE_WEBSOCKET -DNO_SSL 
 
 CFLAGS_CIVETWEB_LIB = $(CFLAGS_CIVETWEB)
 

@@ -1,4 +1,4 @@
 crontab -e
 ============================
-*       *       *       *       *       ~/bin/procmon start >> /var/log/dtmf/processmon.log 2>&1
+* * * * * ~/bin/procmon start >> /var/log/dtmf/processmon.log 2>&1
 ============================

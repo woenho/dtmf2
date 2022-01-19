@@ -4,42 +4,40 @@
 #include <errno.h>
 #include <ctype.h>
 #include <time.h>
+
 #include <fcntl.h>
-#include <signal.h>
-#include <sys/stat.h>
 #include <stddef.h>
+#include <string.h>
+#include <strings.h>
+#include <assert.h>
+#include <dirent.h>
+#include <syslog.h>
+
+#include <signal.h>
+#include <bits/siginfo.h>
+#include <sys/stat.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+
+#include <sys/ioctl.h>
 #include <sys/epoll.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <linux/sockios.h>
 #include <sys/utsname.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
-#include <strings.h>
-#include <assert.h>
-#include <dirent.h>
-#include <bits/siginfo.h>
-#include <json/json.h>
+
 #include <netinet/in.h>
 #include <netdb.h>
 #include <stdarg.h>
-#include <netinet/tcp.h>
-#include <sys/select.h>
 #include <arpa/inet.h>
 #include <linux/types.h>
 #include <linux/netfilter_ipv4.h>
-#include <linux/sockios.h>
 #include <netinet/tcp.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <sys/epoll.h>
-#include <sys/ioctl.h>
-#include<syslog.h>
+
+
 
 #include "civetweb.h"
 #include "logger.h"
