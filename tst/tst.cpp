@@ -7,7 +7,6 @@
 */
 
 #include "tst.h"
-#include<syslog.h>
 
 using namespace std;
 using namespace tst;
