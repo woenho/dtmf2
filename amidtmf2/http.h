@@ -109,9 +109,7 @@ public:
 
 		pNow = querystr;
 
-#if defined(DEBUG)
-		printf("CQueryString::Parse(), querystr=%s:\n", pNow);
-#endif
+		TRACE("CQueryString::Parse(), querystr=%s:\n", pNow);
 
 		while (pNow && *pNow)
 		{
