@@ -6,7 +6,7 @@
 CXX=g++
 CC=gcc
 
-PROG = processmon
+PROG = processmon_r
 SRCS = ws_client.c logger.c
 OBJS = $(SRCS:.c=.o)
 CIVETWEB_LIB = libcivetweb.a
@@ -35,13 +35,15 @@ ifeq (release, $(findstring release, $(MAKECMDGOALS))) #"make clean release"으�
 	CFLAGS_CIVETWEB_LIB += $(CFLAGS_RELEASE)
 else
 	CFLAGS += $(CFLAGS_DEBUG) -DCON_DEBUG
-	CFLAGS_CIVETWEB_LIB += $(CFLAGS_DEBUG) 
+	CFLAGS_CIVETWEB_LIB += $(CFLAGS_DEBUG)
+ifeq (debugtrace, $(findstring debugtrace, $(MAKECMDGOALS))) #"make clean debugtrace"으로 clean 다음에 연이어 debugtrace 나올 수가 있다.
+	CFLAGS += -DDEBUG_TRACE
+	PROG = processmon_t
+	CIVETWEB_LIB = libcivetweb_t.a
+else
 	PROG = processmon_d
 	CIVETWEB_LIB = libcivetweb_d.a
 endif
-
-ifeq (trace, $(findstring trace, $(MAKECMDGOALS))) 
-	CFLAGS += -DDEBUG_TRACE
 endif
 
 OS = $(shell uname -a | grep Debian | wc -l)
@@ -52,11 +54,12 @@ endif
 
 LFLAGS  = -lm -ldl -lpthread -lcrypto
 
-.PHONY: all clean release debug check trace install
+.PHONY: all clean release debug check debugtrace install
 
 all: $(PROG)
 release: all
 debug: all
+debugtrace: all
 
 $(PROG): $(CIVETWEB_LIB) $(INFOBJS) $(OBJS)
 	$(CXX) -o $@ $(LFLAGS) $(OBJS) $(INFOBJS) $(CIVETWEB_LIB)
@@ -86,7 +89,7 @@ install:
 	mkdir -p ~/bin
 	chmod 0755 procmon
 	cp procmon ~/bin	# 복사하면 크론탭 멈출 수 있음
-	cp processmon ~/bin
+	cp $(PROG) ~/bin
 
 
 	
