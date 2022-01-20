@@ -258,6 +258,7 @@ PAMI_RESPONSE amiSendDtmf(const char* caller, const char* dir, const char* dtmf)
 {
 	PAMI_RESPONSE resp = NULL;
 	if (!ami_socket || ami_socket->type != sock_client) {
+		resp = new AMI_RESPONSE;
 		resp->result = 503;
 		strcpy(resp->msg, "AMI에 연결되지 않았음!");
 		return resp;
@@ -288,9 +289,9 @@ PAMI_RESPONSE amiSendDtmf(const char* caller, const char* dir, const char* dtmf)
 	AMI_MANAGE& manage = *(PAMI_MANAGE)ami_socket->user_data->s;
 
 	int nIndx = 0;
-	char buf[128];
 	while (dtmf[nIndx]) {
-		sprintf(buf,
+		if (resp) free(resp);
+		resp = manage.ami_sync( true,
 			"Action: PlayDTMF\n"
 			"Channel: %s\n"
 			"Digit: %c\n"
@@ -298,11 +299,9 @@ PAMI_RESPONSE amiSendDtmf(const char* caller, const char* dir, const char* dtmf)
 			, nDir ? ci.szDestChannel : ci.szChannel
 			, dtmf[nIndx]
 		);
-		if (resp) free(resp);
-		resp = manage.ami_sync(buf);
 		if (resp->result) {
+			sprintf(resp->msg, "dtmf send fail:%d,%s", resp->result, get_amivalue(resp->responses, "Message"));
 			resp->result = 500;
-			sprintf(resp->msg, "dtmf send fail:%s\n", get_amivalue(resp->responses, "Message"));
 			return resp;
 		}
 		nIndx++;
@@ -345,9 +344,8 @@ PAMI_RESPONSE amiBlindTransfer(const char* caller, const char* callee, const cha
 
 	AMI_MANAGE& manage = *(PAMI_MANAGE)ami_socket->user_data->s;
 
-	char buf[2048];	// refer용 header 길이 제한필요
 	if (header) {
-		snprintf(buf, sizeof(buf) - 1,
+		resp = manage.ami_sync(true,
 			"Action: Setvar\n"
 			"Channel: %s\n"
 			"Variable: REFER_HEADER\n"
@@ -355,7 +353,6 @@ PAMI_RESPONSE amiBlindTransfer(const char* caller, const char* callee, const cha
 			, ci.szChannel
 			, header
 		);
-		resp = manage.ami_sync(buf);
 		if (resp->result) {
 			resp->result = 500;
 			sprintf(resp->msg, "REFER_HEADER setvar fail:%s\n", get_amivalue(resp->responses, "Message"));
@@ -364,7 +361,7 @@ PAMI_RESPONSE amiBlindTransfer(const char* caller, const char* callee, const cha
 		free(resp);
 	}
 
-	sprintf(buf,
+	resp = manage.ami_sync( true ,
 		"Action: BlindTransfer\n"
 		"Channel: %s\n"
 		"Context: %s\n"
@@ -373,7 +370,6 @@ PAMI_RESPONSE amiBlindTransfer(const char* caller, const char* callee, const cha
 		, "TRANSFER"	// refer context
 		, callee
 	);
-	resp = manage.ami_sync(buf);
 	if (resp->result) {
 		resp->result = 500;
 		sprintf(resp->msg, "BlindTransfer fail:%s\n", get_amivalue(resp->responses, "Message"));

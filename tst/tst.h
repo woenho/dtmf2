@@ -106,7 +106,7 @@ namespace tst {
 		uint32_t checked_len;		// 수신버퍼라면 수신해야될 도작된 바이트 수, 발신버퍼라면 발신해야할 남은 바이트수
 		struct timespec trans_time;	// NTP 기준 마지막 송수신 시각
 		uint32_t s_len;				// 송수신버퍼의 크기정보
-		char s[];					// 송수신버퍼로 create() 함수에서 지정한 만큼 확보한다
+		char s[];					// 송수신버퍼로 tstpool::create() 함수에서 지정한 만큼 확보한다. 크기를 변경하려면 TST_DATA 를 realloc 해야한다 (TST_SOCKET::initBuffer()활용)
 	} TST_DATA, * PTST_DATA;
 
 	// -----------------------------------------------
@@ -187,13 +187,13 @@ namespace tst {
 		pthread_cond_t	hEvent;			// 쓰레드 깨움 이벤트시그널
 
 		// 쓰레드 통계
-		struct timespec	begin_time;		// 마지막 수행한 잡의 수행 시작 시각
-		struct timespec	end_time;		// 마지막 수행한 잡의 수행 종료 시각
+		struct timespec	begin_time;		// 각 스레드별 마지막 수행한 잡의 수행 시작 시각
+		struct timespec	end_time;		// 각 스레드별 마지막 수행한 잡의 수행 종료 시각
 		// 32bit , 64bit 공통으로 사용하기 위해 uint64_t 지정
-		uint64_t		sum_time;		// milliseconds (수행 시간의 합)
-		uint64_t		most_elapsed;	// nano seconds. 타스크 처리사간 중 가장 오래 걸린 사긴은?
-		uint64_t		exec_count;		// 쓰레드가 요청을 실행한 건수
-		uint64_t		idle_count;		// 쓰레드가 쉬고있다
+		uint64_t		sum_time;		// 각 스레드별 milliseconds (수행 시간의 합)
+		uint64_t		most_elapsed;	// 각 스레드별 nano seconds. 타스크 처리사간 중 가장 오래 걸린 사긴은?
+		uint64_t		exec_count;		// 각 스레드별 쓰레드가 요청을 실행한 건수
+		uint64_t		idle_count;		// 각 스레드별 쓰레드가 쉬고있다
 
 		// thread function
 		tstFunction		tst_func;		// socket 으로부터 데이타가 들어오면 이를 처리할 사용자 함수
@@ -239,19 +239,21 @@ namespace tst {
 		// 또는 사용자가 방화벽 처리를 하고 싶다면 m_fconnected()에서 처리해라
 		// tst_send 보다 큰 값을 리턴하면 연결을 해제한다
 		// 나중에 다른 클라이언트에 발신하고 싶으면 need_send() 호출해라
-		void setEventNewConnected(tstFunction func) { m_fconnected = func; }		// m_fconnected 함수 설정
+		void setEventNewConnected(tstFunction func) { m_fconnected = func; }	// m_fconnected 함수 설정
 		void setEventDisonnected(tstFunction func) { m_fdisconnected = func; }	// m_fdisconnected 함수 설정
+		void setEventMostElapsed(tstFunction func) { m_fmostelapsed = func; }	// m_fmostelapsed 함수 설정
 
 		// 최초 연결부터 클라이언트에 뭐가 쓰고 싶다면 m_fconnected() 에서 버퍼에 설정만 하고 tst_send를 리턴해라.
 		// 워크쓰레드가 보내도록 하자
 		// 만일 특정 클라이언트에 대한 연결을 허가하지 않는다면 tst_disconnect 를 리턴해라
 		// 새로운 연결이 들어 왔을 때 TST_SOCKET을 생성하고 epoll에 등록하기전에 호출해 준다
-		tstFunction m_fconnected;
+		tstFunction m_fconnected;			// 새로운 연결이 들어오면 epoll 이벤트 등록하기전에 호출해준다.(방화벽처리를 셀프로 하려면??)
 		tstFunction m_fdisconnected;		// 연결이 종료되면 TST_SOCKET을 지우기 전에 호출해 준다
-		
-		// m_fmain 이 함수는 매우 신중히 설정해야한다.
+		tstFunction m_fmostelapsed;			// 왜 작업이 오래되었는지 분석을 위한 함수를 호출해 준다 (워크쓰레드단에서 사용할 것인데... socket->func 을 설정하여 이 소켓을 감시하는 것도 한 방법)
+
+		// m_fmain 이 함수는 메인쓰레드에서 동작하므로 매우 신중히 설정해야한다.
 		// 반드시 필요한 경우만 설정하여 사용하고 기본적 업무처리는 워크쓰레드로 넘겨야 한다
-		tstFunction m_fmain;				// 메인소켓이 사용자 지정소켓(sock_client)인 경우 워크쓰레드로 넘기기전에 호출한다
+		tstFunction m_fmain;				// 소켓이 listen소켓이 아닌 경우 워크쓰레드로 넘기기전에 호출한다
 
 	public:
 		struct in_addr m_bind_ip;			// server bind address

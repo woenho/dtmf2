@@ -88,7 +88,12 @@ int parse_amievent(AMI_EVENTS& events) {
 	return events.rec_count;
 }
 
-PAMI_RESPONSE AMI_MANAGE::ami_sync(char* action, bool logprint)
+PAMI_RESPONSE AMI_MANAGE::ami_sync(const char* action, bool logprint)
+{
+	return ami_sync(logprint, action);
+}
+
+PAMI_RESPONSE AMI_MANAGE::ami_sync(bool logprint, const char* fmt, ...)
 {
 	PAMI_RESPONSE pResponse = new AMI_RESPONSE;
 
@@ -97,18 +102,27 @@ PAMI_RESPONSE AMI_MANAGE::ami_sync(char* action, bool logprint)
 		strcpy(pResponse->msg, "AMI서버에 연결되지 않음");
 		return pResponse;
 	}
+	if (ami_socket->send->s == fmt) {
+		pResponse->result = -98;
+		strcpy(pResponse->msg, "action 지정은 send 버퍼를 이용하지 마시오.");
+		return pResponse;
+	}
 
 	TST_DATA& sdata = *ami_socket->send;
+
 	ami_lock();
 	resp_lock();
 
-	sdata.req_len = sprintf(sdata.s,
-		"%s"
-		"ActionID: %d\n"
-		"\n"
-		, action
+	va_list ap;
+	va_start(ap, fmt);
+	sdata.req_len = vsnprintf(sdata.s, sdata.s_len - 1, fmt, ap);
+	va_end(ap);
+
+	sprintf(sdata.s + sdata.req_len,
+		"ActionID: %d\n\n"
 		, ++actionid
-	);
+		);
+	sdata.req_len = strlen((const char*)sdata.s);
 	conft("ami_sync action ---------\n%s", sdata.s);
 	struct timespec waittime;
 	clock_gettime(CLOCK_REALTIME, &waittime);	// NTP영향받아야 함
@@ -148,19 +162,29 @@ PAMI_RESPONSE AMI_MANAGE::ami_sync(char* action, bool logprint)
 	return pResponse;
 }
 
-void AMI_MANAGE::ami_async(char* action) {
+void AMI_MANAGE::ami_async(const char* fmt, ...)
+{
 	if (!ami_socket || ami_socket->type != sock_client)
 		return;
+	if (ami_socket->send->s == fmt) {
+		conft("%s() action 지정은 send 버퍼를 이용하지 마시오.", __func__);
+		return;
+	}
 
 	ami_lock();
 	TST_DATA& sdata = *ami_socket->send;
-	sdata.req_len = sprintf(sdata.s,
-		"%s"
-		"ActionID: %d\n"
-		"\n"
-		, action
+
+	va_list ap;
+	va_start(ap, fmt);
+	sdata.req_len = vsnprintf(sdata.s, sdata.s_len - 1, fmt, ap);
+	va_end(ap);
+
+	sprintf(sdata.s + sdata.req_len,
+		"ActionID: %d\n\n"
 		, ++actionid
 	);
+	sdata.req_len = strlen((const char*)sdata.s);
+
 	conft("ami_async action ---------\n%s", sdata.s);
 	write(ami_socket->sd, sdata.s, sdata.req_len);
 	ami_unlock();

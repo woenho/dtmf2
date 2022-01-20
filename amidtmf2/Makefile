@@ -5,8 +5,8 @@
 .SUFFIXES = .cpp .o
 CXX=g++
 
-PROGRAM = amidtmf
-TARGET = amidtmf2
+PROGRAM = amidtmf_r
+TARGET = amidtmf2_r
 SRCS =  http.cpp \
 		dtmfversion.cpp \
 		processevents.cpp \

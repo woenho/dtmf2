@@ -2,8 +2,8 @@
 
 # crontab 
 # {
-#	매일 04시에 실행
-#	0	4	*	*	*	~/bin/dtmf reset >> /var/log/dtmf/processmon.log 2>&1
+#  매일 04시에 실행
+#  0 4 * * * ~/bin/dtmf reset >> /var/log/dtmf/processmon.log 2>&1
 # }
 
 program=amidtmf
@@ -42,7 +42,7 @@ stop_dtmf()
 		else
 			# kill -s SIGINT `pidof ${program}`
 			kill -2 `pidof ${program}`
-			echo ok... 
+			echo --- dtmf stop ok... 
 		fi
 	fi
 }

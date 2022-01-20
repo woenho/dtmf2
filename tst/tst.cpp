@@ -11,6 +11,13 @@
 using namespace std;
 using namespace tst;
 
+#ifdef OLDEPOLL
+// linux 커널이 낮은 epoll 시스템은 EPOLLRDHUP 을 처리하지 못함
+#define TST_EPOLL_BASE_EVENTS	(EPOLLIN | EPOLLPRI | /*EPOLLRDHUP |*/ EPOLLERR | EPOLLHUP | EPOLLONESHOT)
+#else
+#define TST_EPOLL_BASE_EVENTS	(EPOLLIN | EPOLLPRI | EPOLLRDHUP | EPOLLERR | EPOLLHUP | EPOLLONESHOT)
+#endif
+
 tstpool::tstpool()
 {
 	bzero(this, sizeof(*this));
@@ -32,10 +39,6 @@ int	tstpool::tcp_create(const char* ip, u_short port_no)
 	int		fd;
 	int		retry;
 
-	fprintf(stdout, "tstpool compile date : %s\n", tstCompileDate);
-	fflush(stdout);
-	syslog(LOG_INFO, "tstpool compile date : %s", tstCompileDate);
-
 #define MAX_RETRY		(10)
 
 	memset(&addr_in, 0x00, sizeof(addr_in));
@@ -49,10 +52,22 @@ int	tstpool::tcp_create(const char* ip, u_short port_no)
 
 	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		fprintf(stderr, "server socket create error port = %d, errno=%d\n", port_no, errno);
+		fprintf(stderr, "tstpool --- server socket create error port = %d, errno=%d\n", port_no, errno);
 		fflush(stderr);
 		syslog(LOG_INFO, "tstpool --- server socket create error port=%d, errno=%d", port_no, errno);
 		return -1;
+	}
+	// server fd Non-Blocking Socket으로 설정. 
+	// Edge Trigger 사용시는 필수, 그러나 tstpool은 레벨트리거 사용. 길이 체크하며 read하기 때문에 반드시 필요하진 않지만....
+	int flags = fcntl(fd, F_GETFL);
+	flags |= O_NONBLOCK;
+	if (fcntl(fd, F_SETFL, flags) < 0)
+	{
+		fprintf(stderr, "tstpool main socket fcntl(O_NONBLOCK) error, errno=%d\n", errno);
+		fflush(stderr);
+		syslog(LOG_ERR, "tstpool main socket fcntl(O_NONBLOCK) error, errno=%d\n", errno);
+		close(fd);
+		return -7;
 	}
 
 	optval = 1;
@@ -91,7 +106,7 @@ int	tstpool::tcp_create(const char* ip, u_short port_no)
 	if (retry >= MAX_RETRY)
 	{
 		close(fd);
-		return -2;
+		return -8;
 	}
 
 	if (listen(fd, 100) == -1)
@@ -137,14 +152,26 @@ int	tstpool::tcp_connect(const char* host, u_short port_no, struct	sockaddr_in* 
 	addr_in.sin_port = htons(port_no);
 
 	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		return(-3);
+		return(-2);
 
 	if (connect(fd, (struct sockaddr*)&addr_in, sizeof(addr_in)) < 0)
 	{
 		close(fd);
-		return(-4);
+		return(-3);
 	}
 
+	// server fd Non-Blocking Socket으로 설정. 
+	// Edge Trigger 사용시는 필수, 그러나 tstpool은 레벨트리거 사용. 길이 체크하며 read하기 때문에 반드시 필요하진 않지만....
+	int flags = fcntl(fd, F_GETFL);
+	flags |= O_NONBLOCK;
+	if (fcntl(fd, F_SETFL, flags) < 0)
+	{
+		fprintf(stderr, "tstpool main socket fcntl(O_NONBLOCK) error, errno=%d\n", errno);
+		fflush(stderr);
+		syslog(LOG_ERR, "tstpool main socket fcntl(O_NONBLOCK) error, errno=%d\n", errno);
+		close(fd);
+		return -7;
+	}
 	if (paddr)
 		memcpy(paddr, &addr_in, sizeof(addr_in));
 
@@ -180,11 +207,7 @@ void* tst_main(void* param)
 	// 메인소켓이 지정되었으면 epoll에 등록한다
 	if (pool->m_sockmain > 0) {
 		memset(&ev, 0x00, sizeof(ev));
-#ifdef OLDEPOLL
-		ev.events = EPOLLIN /*| EPOLLRDHUP*/ | EPOLLERR | EPOLLHUP | EPOLLONESHOT;
-#else
-		ev.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLHUP | EPOLLONESHOT;
-#endif
+		ev.events = TST_EPOLL_BASE_EVENTS;
 		ev.data.fd = pool->m_sockmain;
 
 
@@ -205,7 +228,7 @@ void* tst_main(void* param)
 			}
 		}
 	} else {
-		// 서버소켓이 생성되지 않았다면 만들어진 워크쓰레드를 모두 종료하고 메인쓰레드도 종료한다
+		// 서버소켓이 지정되지 않았다면 만들어진 워크쓰레드를 모두 종료하고 메인쓰레드도 종료한다
 		pool->m_main_run = 0;
 		TRACE("tst ----------need main socket setting\n");
 	}
@@ -216,7 +239,7 @@ void* tst_main(void* param)
 
 	nCheckCount = 0;
 	while (pool->m_main_run) {
-		// 앞전에 가져온 모든 이벤트에 대한 작업의뢰가 완료하고 epoll 이벤트를 가지러 가자
+		// 앞전에 가져온 모든 이벤트에 대한 작업의뢰를 완료하고 epoll 이벤트를 가지러 가자
 		if (nCheckCount<1) {
 			memset(pool->m_events, 0x00, pool->m_size_event);
 			nCheckCount = epoll_wait(pool->m_epfd, pool->m_events, pool->m_thread_count, 100); // wait 100 mili seconds
@@ -257,7 +280,7 @@ void* tst_main(void* param)
 							// epoll에 등록
 							memset(&ev, 0x00, sizeof(ev));
 							// 최초 연결부터 클라이언트에 뭐가 쓰고 싶다면 m_fconnected() 에서 버퍼에 설정만 해라. 뭐크쓰레드가 보내도록 하자
-							ev.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLHUP | EPOLLONESHOT;
+							ev.events = TST_EPOLL_BASE_EVENTS;
 							if (next == tst_send)
 								ev.events |= EPOLLOUT;
 							ev.data.fd = sd;
@@ -280,7 +303,7 @@ void* tst_main(void* param)
 					}
 					// epoll에 서버소켓 수정 등록
 					memset(&ev, 0x00, sizeof(ev));
-					ev.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLHUP | EPOLLONESHOT;
+					ev.events = TST_EPOLL_BASE_EVENTS;
 					ev.data.fd = pool->m_sockmain;
 					if (epoll_ctl(pool->m_epfd, EPOLL_CTL_MOD, ev.data.fd, &ev) < 0)
 					{
@@ -295,7 +318,7 @@ void* tst_main(void* param)
 					// 서버소켓이 닫혔다? 뭐지???
 					pool->m_main_run = 0;
 				} else {
-					// 뭐지?? 서버소켓은 connect (EPOLLIN)만 들어온다.
+					// 뭐지?? listen소켓은 connect (EPOLLIN)만 들어온다.
 					// 할것 없다.
 				}
 				nCheckCount--;
@@ -313,7 +336,7 @@ void* tst_main(void* param)
 			}
 		}
 
-		if (events & EPOLLIN) {
+		if (events & EPOLLIN || events & EPOLLPRI) {
 			// 수신된 데이타길이는 바로 검증되지만 실제 read() 함수 호출하면 안된다 read() 함수는 워크쓰레드에서 해야한다....
 			err = ioctl(sd, SIOCINQ, &check_len);	// tcp수신버퍼에 도착한 바이트 수를 check_len에 넣어준다, 성공시 0 리턴
 		}
@@ -342,7 +365,7 @@ void* tst_main(void* param)
 
 		// 기타 사용자소켓 + 서브소켓처리
 		// m_connect의 등록된 소켓을 사용 중 에는 삭제 되지 않는 다는 것을 전제한다
-		// 즉 사용되고 있는 소켓에는 이벤트가 발생하지 않는 다는 것이다(EPOLLONESHOT 플러그 반드시 사용)
+		// 즉 사용되고 있는 소켓에는 이벤트가 발생하지 않는다는 것이다(EPOLLONESHOT 플러그 반드시 사용)
 		// 그러므로 현재 소켓이 아닌 다른 소켓에 작업을 하려면 그 소켓을 사용하는 동안 삭제될 수 있으므로 매우 신중해야한다.
 		it = pool->m_connect.find(sd);
 		if (it != pool->m_connect.end()) {
@@ -364,7 +387,7 @@ void* tst_main(void* param)
 					socket->events = events;
 					if (socket->recv) socket->recv->checked_len = 0;
 					if (socket->send) socket->send->checked_len = 0;
-					if (events & EPOLLIN && socket->recv) {
+					if ((events & EPOLLIN || events & EPOLLPRI) && socket->recv) {
 						socket->recv->checked_len = check_len;
 					}
 					else if (events & EPOLLOUT && socket->send) {	// EPOLLOUT 인 경우 사용자 함수에서 신중히 처리 필요함
@@ -524,7 +547,7 @@ void* tst_work(void* param)
 			TRACE("tst workthread no(%d), I got a job. excuted:%ju, sd:%d, socket:%lX\n", me->thread_no, me->exec_count, socket ? socket->sd : -1, ADDRESS(me->tst_socket));
 
 
-			if (socket->events & EPOLLIN) {
+			if (socket->events & EPOLLIN || socket->events & EPOLLPRI) {
 				// req_len 이 설정되어 있다면 수신처리 한다
 				// 확인 후 사용자 함수를 호출 하여면 next = tst_run을 설정한다
 				data = socket->recv;
@@ -594,8 +617,11 @@ void* tst_work(void* param)
 			seconds = me->end_time.tv_sec - me->begin_time.tv_sec;
 			nanoseconds = me->end_time.tv_nsec - me->begin_time.tv_nsec + (seconds * 1e+9);
 			me->sum_time += nanoseconds / 1e+6; // milli seconds
-			if (me->most_elapsed < nanoseconds)
+			if (me->most_elapsed < nanoseconds) {
 				me->most_elapsed = nanoseconds;
+				if (me->pool->m_fmostelapsed)		// 왜 가장 오래결렸는지 분석이 필요한가?
+					me->pool->m_fmostelapsed(socket);	// socket->func 을 설정하여 이 소켓을 감시하는 것도 한 방법
+			}
 
 			me->exec_count++;
 			TRACE("tst workthread no(%d), I finished a job. excuted:%ju, sd:%d, elapsed:%.6f , next:%d\n", me->thread_no, me->exec_count, socket ? socket->sd : -1, nanoseconds / 1e+9, next);
@@ -613,7 +639,7 @@ void* tst_work(void* param)
 			if (socket && socket->sd > 0) {
 				memset(&ev, 0x00, sizeof(ev));
 				// EPOLLOUT 은 필요시만 설정한다 아니면 무한루프...
-				ev.events = EPOLLIN /*| EPOLLOUT*/ | EPOLLRDHUP | EPOLLERR | EPOLLHUP | EPOLLONESHOT;
+				ev.events = TST_EPOLL_BASE_EVENTS;
 				// next == tst_send: req_len을 설정하면 다음번 work_thread 가 보내준다
 				// next == tst_send: req_len을 설정하지 않으면 사용자가 메시지 보낸 경우다 메시지 다 보낸 후에 EPOLLOUT 으로 사용자함수 호출되며 checked_len = 0 이다
 				// next == tst_send: req_len을 설정하지 않으면 사용자가 다 보낸것을 확인 후에 tst_disconnect 호출해주는 것을 추천한다
@@ -692,6 +718,10 @@ void* tst_work(void* param)
 int tstpool::create(int thread_count, const char* bind_ip, unsigned short bind_port, tstFunction func
 	, uint32_t max_recv_size, uint32_t max_send_size, pthread_attr_t* attr)
 {
+	fprintf(stdout, "tstpool compile date : %s\n", tstCompileDate);
+	fflush(stdout);
+	syslog(LOG_INFO, "tstpool compile date : %s", tstCompileDate);
+
 	// 만일 bind_port 가 유효하지 않다면 이미 사용자 가 메인 소켓에 대한 처리를 환료하고 create() 함수를 했다고 가정한다
 	// then --> socket connect() and set to m_socktype = sock_client......
     if (bind_port > 0) {
@@ -797,7 +827,7 @@ int tstpool::destroy(uint64_t wait_time)
     for (it_connect = m_connect.begin(); it_connect != m_connect.end(); it_connect++ ) {
 		socket = it_connect->second;
 		memset(&ev, 0x00, sizeof(ev));
-		ev.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLHUP | EPOLLONESHOT;
+		ev.events = TST_EPOLL_BASE_EVENTS;
 		ev.data.fd = socket->sd;
 		epoll_ctl(m_epfd, EPOLL_CTL_DEL, socket->sd, &ev);
 		TRACE("[epoll_ctl(EPOLL_CTL_DEL)] sd:%d, deleted\n", ev.data.fd);
@@ -845,7 +875,7 @@ bool tstpool::need_send(int sd)
 	// 이거 설정되면 워크 쓰레드가 사용자 함수 호출 하며 TST_SOCKET::event 에 EPOLLOUT 설정한다
 	struct epoll_event ev;	///< 이벤트 처리종류(read/wtire/error) 지정용 epoll구조
 	memset(&ev, 0x00, sizeof(ev));
-	ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLERR | EPOLLHUP | EPOLLONESHOT;
+	ev.events = TST_EPOLL_BASE_EVENTS | EPOLLOUT;
 	ev.data.fd = sd;
 	if (epoll_ctl(m_epfd, EPOLL_CTL_MOD, ev.data.fd, &ev) < 0)
 	{
@@ -875,7 +905,7 @@ void tstpool::closesocket(int sd)
 	TRACE("disconnect sd=%d, client ip=%s, client port=%d\n", socket->sd, inet_ntoa(socket->client.sin_addr), socket->client.sin_port);
 
 	memset(&ev, 0x00, sizeof(ev));
-	ev.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLHUP | EPOLLONESHOT;
+	ev.events = TST_EPOLL_BASE_EVENTS;
 	ev.data.fd = sd;
 	epoll_ctl(m_epfd, EPOLL_CTL_DEL, sd, &ev);
 	TRACE("[epoll_ctl(EPOLL_CTL_DEL)] sd:%d, deleted\n", ev.data.fd);

@@ -91,8 +91,9 @@ typedef struct AMI_MANAGE_T {
 		return pthread_mutex_unlock(&mutexResp);
 	}
 
-	PAMI_RESPONSE ami_sync(char* action, bool logprint = true);
-	void ami_async(char* action);
+	PAMI_RESPONSE ami_sync(bool logprint, const char* fmt, ...);
+	PAMI_RESPONSE ami_sync(const char* action, bool logprint = true);
+	void ami_async(const char* fmt, ...);
 
 }AMI_MANAGE, *PAMI_MANAGE;
 

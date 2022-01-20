@@ -202,6 +202,7 @@
     <None Include=".editorconfig" />
     <None Include="amidtmf.conf" />
     <None Include="amidtmf_d.conf" />
+    <None Include="amidtmf_r.conf" />
     <None Include="amidtmf_t.conf" />
     <None Include="dtmf" />
     <None Include="Makefile" />

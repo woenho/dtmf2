@@ -180,11 +180,11 @@ int main(int argc, char* argv[])
 	if (logmethod) free(logmethod);
 
 #if defined(DEBUGTRACE)
-	conft("\n------------------------\n debugtrace DTMF server start. pid(%d)\n========================================", getpid());
+	conft("\n------------------------\n trace debuging info DTMF server start. pid(%d)\n========================================", getpid());
 #elif defined(DEBUG)
-	conft("\n------------------------\n debug DTMF server start. pid(%d)\n========================================", getpid());
+	conft("\n------------------------\n possible debuging DTMF server start. pid(%d)\n========================================", getpid());
 #else
-	conft("\n------------------------\n DTMF server start. pid(%d)\n========================================", getpid());
+	conft("\n------------------------\n optimization DTMF server start. pid(%d)\n========================================", getpid());
 #endif
 	conft("atp compile date: %s", atpCompileDate);
 	conft("tst compile date: %s", tstCompileDate);
