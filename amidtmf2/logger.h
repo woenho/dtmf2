@@ -18,6 +18,7 @@ enum con_callmode {
     CON_CALLMODE_CONFN = 2,
     CON_CALLMODE_CONP = 3,
     CON_CALLMODE_CONPN = 4,
+    // 아래는 시간 있음
     CON_CALLMODE_CONFT = 5,
     CON_CALLMODE_CONFTN = 6,
     CON_CALLMODE_CONPT = 7,

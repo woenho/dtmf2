@@ -2,10 +2,10 @@
 
 # crontab -e
 # {
-#	매 분마다 실행
-#	*	*	*	*	*	~/bin/procmon start >> /var/log/dtmf/processmon.log 2>&1
-#	매일 04시에 실행
-#	0	4	*	*	*	~/bin/dtmf reset >> /var/log/dtmf/processmon.log 2>&1
+#  매 분마다 실행
+#  * * * * * ~/bin/procmon start >> /var/log/dtmf/processmon.log 2>&1
+#  매일 04시에 실행
+#  0 4 * * * ~/bin/dtmf reset >> /var/log/dtmf/processmon.log 2>&1
 # }
 
 server=amidtmf
@@ -54,12 +54,13 @@ elif [ "$1" = "start" ]; then
 	if [ "$CNT" = "0" ]; then
 		# 2초 정도 기다렸다가 다음 프로세스를 시작하자.
 		sleep 2
-		${OPBIN}/${program} &
+		${OPBIN}/${program} $2 $3 &
 		echo "${today} processmon is startup now... ${OPBIN}/${program}"
 	else 
 		echo "${today} processmon is already running... pid=`pidof ${program}`"
 	fi
 else
 	echo "${today} Line input is $0 $1 $2"
-	echo "${today} Usage: procmon {start | stop | status}"
+	echo "${today} Usage: procmon {stop | status | start [ port_no  logfile_path ] }"
+	echo "${today} Usage: procmon start 4061 /var/log/dtmf/processmon.log"
 fi

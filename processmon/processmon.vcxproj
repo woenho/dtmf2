@@ -117,86 +117,86 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean debug install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean debug install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make debug clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|ARM'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean debugtrace install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean debugtrace install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make debugtrace clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make release clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean debug install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean debug install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make debug clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|ARM64'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean debugtrace install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean debugtrace install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make debugtrace clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make release clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean debug install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean debug install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make debug clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|x64'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean debugtrace install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean debugtrace install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make debugtrace clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make release clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean debug install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean debug install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make debug clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTrace|x86'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean debugtrace install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean debugtrace install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make debugtrace clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <NMakeIncludeSearchPath>include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBIAN;DEBUG;NO_SSL;LINUX;USE_STACK_SIZE=102400;USE_STACK_SIZE=102400;OPENSSL_API_1_1;USE_WEBSOCKET</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>make</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
-    <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
+    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>make release clean</RemoteCleanCommandLine>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
