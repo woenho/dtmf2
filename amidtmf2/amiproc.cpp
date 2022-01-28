@@ -29,7 +29,7 @@ int log_event_level = 0;				// 0이 아닌 값이 설정되면 event 명을 로�
 
 void* rm_ami_socket(tst::TST_USER_T* puser) {
 	
-	if (!puser || puser->s_len != (sizeof(TST_USER) + sizeof(AMI_MANAGE)))
+	if (!puser || puser->s_len != sizeof(AMI_MANAGE))
 		return NULL;
 
 	PAMI_MANAGE ami_manage = (PAMI_MANAGE)puser->s;
@@ -363,7 +363,7 @@ TST_STAT my_disconnected(PTST_SOCKET psocket) {
 	}
 	else {
 #ifdef DEBUG
-		conft("--- disconnected client socket....%s(%s:%d)", __func__, inet_ntoa(psocket->client.sin_addr), ntohs(psocket->client.sin_port));
+//		conft("--- disconnected client socket....%s(%s:%d)", __func__, inet_ntoa(psocket->client.sin_addr), ntohs(psocket->client.sin_port));
 #endif
 	}
 

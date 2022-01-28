@@ -54,9 +54,8 @@ typedef struct AMI_MANAGE_T {
 	uint32_t actionid;					// AMI 명령을 보내는 순번 
 
 	static PTST_USER alloc() {
-		uint32_t s_len = sizeof(TST_USER) + sizeof(struct AMI_MANAGE_T);
-		PTST_USER puser = (PTST_USER)calloc(s_len,1);
-		puser->s_len = s_len;
+		PTST_USER puser = (PTST_USER)calloc(sizeof(TST_USER) + sizeof(struct AMI_MANAGE_T), 1);
+		puser->s_len = sizeof(struct AMI_MANAGE_T);
 		puser->type = ami_base;
 		puser->removeBuffer = (CleanFunction)rm_ami_socket;
 		((struct AMI_MANAGE_T*)puser->s)->init();

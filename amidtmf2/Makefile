@@ -7,16 +7,7 @@ CXX=g++
 
 PROGRAM = amidtmf_r
 TARGET = amidtmf2_r
-SRCS =  http.cpp \
-		dtmfversion.cpp \
-		processevents.cpp \
-		amiaction.cpp \
-		amiproc.cpp \
-		routes.cpp \
-		logger.cpp \
-		util.cpp \
-		WebConfig.cpp \
-		amidtmf2.cpp
+SRCS =  http.cpp http_routes.cpp websocket.cpp ws_routes.cpp dtmfversion.cpp processevents.cpp amiaction.cpp amiproc.cpp logger.cpp util.cpp WebConfig.cpp amidtmf2.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 CFLAGS_RELEASE = -O2 -fPIC

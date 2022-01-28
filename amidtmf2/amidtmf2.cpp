@@ -1,5 +1,6 @@
 #include "amiaction.h"
 #include "http.h"
+#include "websocket.h"
 #include "processevents.h"
 
 extern char dtmfCompileDate[20];
@@ -235,6 +236,12 @@ int main(int argc, char* argv[])
 	g_route["/keepalive"] = (void*)http_alive;
 	for (it = g_route.begin(); it != g_route.end(); it++) {
 		conft(":%s: http route func address -> %lX\n", it->first, ADDRESS(it->second));
+	}
+
+	g_websocket.clear();
+	g_websocket["/ws"] = (void*)websocket_alive;
+	for (it = g_route.begin(); it != g_route.end(); it++) {
+		conft(":%s: websocket route func address -> %lX\n", it->first, ADDRESS(it->second));
 	}
 
 	// -------------------------------------------------------------------------------------

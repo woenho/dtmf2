@@ -26,23 +26,20 @@ typedef struct http_request_info {
 	HTTP_HEADER http_headers[HTTP_MAX_HEADERS]; /* Allocate maximum headers */
 
 	static PTST_USER alloc() {
-		uint32_t s_len = sizeof(TST_USER) + sizeof(struct http_request_info);
-		PTST_USER puser = (PTST_USER)calloc(s_len, 1);
-		puser->s_len = s_len;
+		PTST_USER puser = (PTST_USER)calloc(sizeof(TST_USER) + sizeof(struct http_request_info), 1);
+		puser->s_len = sizeof(struct http_request_info);
 		return puser;
 	}
 }REQUEST_INFO, * PREQUEST_INFO;
 
-typedef TST_STAT httpproc(PTST_SOCKET psocket);
-
 extern map<const char*, void*> g_route;
 
+const char* get_httpheader(REQUEST_INFO& req, const char* header_name);
 TST_STAT http(PTST_SOCKET psocket);
 // 이하는 routes.cpp 것
 TST_STAT http_dtmf(PTST_SOCKET psocket);
 TST_STAT http_transfer(PTST_SOCKET psocket);
 TST_STAT http_alive(PTST_SOCKET psocket);
-
 
 class CQueryString
 {

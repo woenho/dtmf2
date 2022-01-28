@@ -145,7 +145,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>~/bin/procmon stop;~/bin/dtmf stop;make clean release install</RemoteBuildCommandLine>
+    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
     <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make release clean </RemoteCleanCommandLine>
   </PropertyGroup>
@@ -166,14 +166,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>~/bin/procmon stop;~/bin/dtmf stop;make clean release install</RemoteBuildCommandLine>
+    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
     <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make release clean </RemoteCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>~/bin/procmon stop;~/bin/dtmf stop;make clean release install</RemoteBuildCommandLine>
+    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
     <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make release clean </RemoteCleanCommandLine>
   </PropertyGroup>
@@ -194,7 +194,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <NMakeIncludeSearchPath>../tst;../AsyncThreadPool</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>DEBUG;DEBUGTRACE;USE_USEREVENT_CALLSTARTED</NMakePreprocessorDefinitions>
-    <RemoteBuildCommandLine>~/bin/procmon stop;~/bin/dtmf stop;make clean release install</RemoteBuildCommandLine>
+    <RemoteBuildCommandLine>make clean release install</RemoteBuildCommandLine>
     <RemoteReBuildCommandLine>make clean release install</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make release clean </RemoteCleanCommandLine>
   </PropertyGroup>
@@ -215,9 +215,12 @@
     <ClCompile Include="http.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="processevents.cpp" />
-    <ClCompile Include="routes.cpp" />
+    <ClCompile Include="http_routes.cpp" />
+    <ClCompile Include="sha1.c" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="WebConfig.cpp" />
+    <ClCompile Include="websocket.cpp" />
+    <ClCompile Include="ws_routes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="amiaction.h" />
@@ -225,8 +228,10 @@
     <ClInclude Include="http.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="processevents.h" />
+    <ClInclude Include="sha1.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="WebConfig.h" />
+    <ClInclude Include="websocket.h" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

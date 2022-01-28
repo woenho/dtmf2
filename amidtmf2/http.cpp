@@ -7,11 +7,24 @@
 */
 #include "util.h"
 #include "http.h"
+#include "websocket.h"
+
 
 map<const char*, void*> g_route;
 
 // 일단 기동되는 tcp 서버는 HTTP 프로토콜을 지원하도록 한다
 // 외부에서 amiprocess에 연결하여 요청하는 것은 기본적으로 http GET 메소드를 지원한다
+
+const char* get_httpheader(REQUEST_INFO& req, const char* header_name)
+{
+	int i;
+	for (i = 0; i < req.num_headers; i++) {
+		if (!strcmp(req.http_headers[i].name, header_name)) {
+			return req.http_headers[i].value;
+		}
+	}
+	return "";
+}
 
 TST_STAT http(PTST_SOCKET psocket)
 {
@@ -32,6 +45,10 @@ TST_STAT http(PTST_SOCKET psocket)
 	TST_DATA& rdata = *psocket->recv;	// 수신버퍼
 	TST_DATA& sdata = *psocket->send;	// 발신버퍼
 	int remain;
+	char* url = NULL;
+	char* src;
+	const char* psz;
+
 	// http parse
 	if (psocket && psocket->events & EPOLLIN) {
 		clock_gettime(CLOCK_REALTIME, &rdata.trans_time);
@@ -80,7 +97,6 @@ TST_STAT http(PTST_SOCKET psocket)
 		rdata.s[rdata.req_pos + rdata.com_len] = '\0';
 		TRACE("http protocol....\n%s", rdata.s + rdata.req_pos);
 
-		char* url = NULL;
 		if (!psocket->user_data) {
 			// user_data 가 설정되지 않았다면 http header를 수신했다
 			psocket->user_data = REQUEST_INFO::alloc();
@@ -88,7 +104,6 @@ TST_STAT http(PTST_SOCKET psocket)
 			url = rdata.s;
 			req.body_string = rdata.s + rdata.com_len;
 			// parse
-			char* src;
 			for (src = rdata.s; *url; url++) {
 				if (!req.request_method) {
 					if (*url == ' ') {
@@ -146,32 +161,30 @@ TST_STAT http(PTST_SOCKET psocket)
 				if (*url == '?') {
 					*url = '\0';
 					req.query_string = url + 1;
+				} else {
+					// url 에 ? 가 없으면 쿼리스트링은 널스트링 포인터를 가진다
+					req.query_string = url;
 				}
 			}
 
 			// 이거 살리면 keep-alive용 전문 로깅 많다 헐...
 			// conft("%s(), uri=%s, querystr=%s:", __func__, req.request_uri, req.query_string);
 
-			urlDecodeRewite(req.request_uri);
-			urlDecodeRewite((char*)req.query_string);
+			if (req.request_uri && *req.request_uri) urlDecodeRewite(req.request_uri);
+			if (req.query_string && *req.query_string) urlDecodeRewite((char*)req.query_string);
 
-			int i;
-			for (i = 0; i < req.num_headers; i++) {
-				if (!strcmp(req.http_headers[i].name, "Content-Length")) {
-					int length = atoi(req.http_headers[i].value);
-					if (length) {
-						if (length > (int)(rdata.s_len - rdata.com_len)) {
-							sdata.com_len = sprintf(sdata.s, "HTTP/1.0 413 Payload Too Large\r\n\r\n");
-							write(psocket->sd, sdata.s, sdata.com_len);
-							return tst_disconnect;
-						}
-						rdata.req_pos = rdata.com_len;
-						rdata.com_len = 0;
-						rdata.req_len = length;
-						TRACE("body get auto rdata.req_len=%d\n", rdata.req_len);
-						return tst_suspend;
-					}
+			int length = atoi(get_httpheader(req, "Content-Length"));
+			if (length) {
+				if (length > (int)(rdata.s_len - rdata.com_len)) {
+					sdata.com_len = sprintf(sdata.s, "HTTP/1.0 413 Payload Too Large\r\n\r\n");
+					write(psocket->sd, sdata.s, sdata.com_len);
+					return tst_disconnect;
 				}
+				rdata.req_pos = rdata.com_len;
+				rdata.com_len = 0;
+				rdata.req_len = length;
+				TRACE("body get auto rdata.req_len=%d\n", rdata.req_len);
+				return tst_suspend;
 			}
 		} else {
 			// post body 수신했다.
@@ -185,12 +198,44 @@ TST_STAT http(PTST_SOCKET psocket)
 
 		REQUEST_INFO& req = *(PREQUEST_INFO)psocket->user_data->s;
 
+		// method 가 OPTIONS 가 아니면 websocket 인지 확인한다
+		if (strcmp(req.request_method, "OPTIONS")) {
+			psz = get_httpheader(req, "Connection");
+			if (!strcmp(psz, "Upgrade")) {
+				psz = get_httpheader(req, psz);
+				if (!strcmp(psz, "websocket")) {
+					static const char* magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+					char buf[100], sha[20], b64_sha[sizeof(sha) * 2];
+					SHA_CTX sha_ctx;
+					snprintf(buf, sizeof(buf), "%s%s", get_httpheader(req, "Sec-WebSocket-Key"), magic);
+
+					SHA1_Init(&sha_ctx);
+					SHA1_Update(&sha_ctx, (unsigned char*)buf, (uint32_t)strlen(buf));
+					SHA1_Final((unsigned char*)sha, &sha_ctx);
+					base64_encode((unsigned char*)sha, sizeof(sha), b64_sha);
+
+					sdata.com_len = sprintf(sdata.s,
+						"HTTP/1.1 101 Switching Protocols\r\n"
+						"Upgrade: websocket\r\n"
+						"Connection: Upgrade\r\n"
+						"Sec-WebSocket-Accept: %s\r\n\r\n",
+						b64_sha);
+					write(psocket->sd, sdata.s, sdata.com_len);
+					clock_gettime(CLOCK_REALTIME, &sdata.trans_time);
+
+					// websocket으로 전환한다, 소켓을 종료하지 않는다
+					psocket->func = websocket;
+					return psocket->func(psocket);
+				}
+			}
+		}
+
 		if (!strcmp(req.request_method, "GET") || !strcmp(req.request_method, "POST")) {
 			map<const char*, void*>::iterator it;
 			for (it = g_route.begin(); it != g_route.end(); it++) {
 				// printf(":%s: http func address -> %lX\n", it->first, ADDRESS(it->second));
 				if (!strcmp(req.request_uri, it->first)) {
-					httpproc* func = (httpproc*)it->second;
+					tstFunction func = (tstFunction)it->second;
 					TST_STAT next = func(psocket);
 					if (next != tst_disconnect) {
 						// keep alive 소켓이 연결을 끊지 않아서 이걸 삭제해 주어야 다음 메시지를 파싱처리한다.

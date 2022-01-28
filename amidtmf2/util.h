@@ -49,6 +49,7 @@
 #include <openssl/sha.h>
 #include <iconv.h>
 
+#include "sha1.h"
 #include "WebConfig.h"
 #include "logger.h"
 
@@ -78,10 +79,16 @@ extern sigset_t g_sigsOld;		///< 시그널 구조
 extern "C"
 {
 #endif
+	// base64
+	unsigned char b64reverse(char letter);
+	int base64_decode(const unsigned char* src, int src_len, char* dst, size_t* dst_len);
+	void base64_encode(const unsigned char* src, int src_len, char* dst);
 
+	// hash 256, 512
 	char* getSHA256(const char* data);
 	char* getSHA512(const char* data);
 
+	// file
 	char* load_file(char* path, size_t* load_len);
 	char* get_auth(const char* szChannel, const char* key, char* path);
 	char* get_memcached(const char* key);

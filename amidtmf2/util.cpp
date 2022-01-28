@@ -16,6 +16,93 @@ int					g_logPort = -1;
 sigset_t g_sigsBlock;	///< 시그널 구조
 sigset_t g_sigsOld;		///< 시그널 구조
 
+inline unsigned char b64reverse(char letter)
+{
+	if ((letter >= 'A') && (letter <= 'Z')) {
+		return letter - 'A';
+	}
+	if ((letter >= 'a') && (letter <= 'z')) {
+		return letter - 'a' + 26;
+	}
+	if ((letter >= '0') && (letter <= '9')) {
+		return letter - '0' + 52;
+	}
+	if (letter == '+') {
+		return 62;
+	}
+	if (letter == '/') {
+		return 63;
+	}
+	if (letter == '=') {
+		return 255; /* normal end */
+	}
+	return 254; /* error */
+}
+
+int base64_decode(const unsigned char* src, int src_len, char* dst, size_t* dst_len)
+{
+	int i;
+	unsigned char a, b, c, d;
+
+	*dst_len = 0;
+
+	for (i = 0; i < src_len; i += 4) {
+		a = b64reverse(src[i]);
+		if (a >= 254) {
+			return i;
+		}
+
+		b = b64reverse(((i + 1) >= src_len) ? 0 : src[i + 1]);
+		if (b >= 254) {
+			return i + 1;
+		}
+
+		c = b64reverse(((i + 2) >= src_len) ? 0 : src[i + 2]);
+		if (c == 254) {
+			return i + 2;
+		}
+
+		d = b64reverse(((i + 3) >= src_len) ? 0 : src[i + 3]);
+		if (d == 254) {
+			return i + 3;
+		}
+
+		dst[(*dst_len)++] = (a << 2) + (b >> 4);
+		if (c != 255) {
+			dst[(*dst_len)++] = (b << 4) + (c >> 2);
+			if (d != 255) {
+				dst[(*dst_len)++] = (c << 6) + d;
+			}
+		}
+	}
+	return -1;
+}
+
+void base64_encode(const unsigned char* src, int src_len, char* dst)
+{
+	static const char* b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	int i, j, a, b, c;
+
+	for (i = j = 0; i < src_len; i += 3) {
+		a = src[i];
+		b = ((i + 1) >= src_len) ? 0 : src[i + 1];
+		c = ((i + 2) >= src_len) ? 0 : src[i + 2];
+
+		dst[j++] = b64[a >> 2];
+		dst[j++] = b64[((a & 3) << 4) | (b >> 4)];
+		if (i + 1 < src_len) {
+			dst[j++] = b64[(b & 15) << 2 | (c >> 6)];
+		}
+		if (i + 2 < src_len) {
+			dst[j++] = b64[c & 63];
+		}
+	}
+	while (j % 4 != 0) {
+		dst[j++] = '=';
+	}
+	dst[j++] = '\0';
+}
+
 char* getSHA256(const char* data) {
 
     unsigned char digest[SHA256_DIGEST_LENGTH];
