@@ -280,13 +280,14 @@ TST_STAT websocket(PTST_SOCKET psocket) {
 		}
 	}
 	
-	if (log_event_level > 1) {
-		if (wsinfo.is_close)
+	if (log_event_level > 0) {
+		if (wsinfo.is_close) {
 			conft("ws-read\nopcode=%0.2X, len=%d, end_status=%d", wsinfo.opcode, wsinfo.data_len, ntohs(*(uint16_t*)wsinfo.data));
-		else if (wsinfo.is_text)
+		} else if (wsinfo.is_text) {
 			conft("ws-read\nopcode=%0.2X, len=%d msg=:%s:", wsinfo.opcode, wsinfo.data_len, wsinfo.data ? wsinfo.data : "");
-		else
+		} else {
 			conft("ws-read\nopcode=%0.2X, len=%d", wsinfo.opcode, wsinfo.data_len);
+		}
 	}
 
 
@@ -298,7 +299,7 @@ TST_STAT websocket(PTST_SOCKET psocket) {
 		if (next != tst_run) {
 			// 일반적인 경우라면 반드시 리셋 되어야 한다
 			prdata->reset_data();
-			bzero(psocket->user_data->s, psocket->user_data->s_len);
+			wsinfo.init();
 		}
 		return next;
 	}

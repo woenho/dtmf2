@@ -49,7 +49,6 @@
 #include <openssl/sha.h>
 #include <iconv.h>
 
-#include "sha1.h"
 #include "WebConfig.h"
 #include "logger.h"
 

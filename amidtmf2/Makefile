@@ -5,9 +5,22 @@
 .SUFFIXES = .cpp .o
 CXX=g++
 
+# sha1.c, sha1.h 는 참조로 프로젝트에 추가만 한다, 실제는 openssl 것을 사용한다
+
 PROGRAM = amidtmf_r
 TARGET = amidtmf2_r
-SRCS =  http.cpp http_routes.cpp websocket.cpp ws_routes.cpp dtmfversion.cpp processevents.cpp amiaction.cpp amiproc.cpp logger.cpp util.cpp WebConfig.cpp amidtmf2.cpp
+SRCS =  http.cpp \
+		http_routes.cpp \
+		websocket.cpp \
+		ws_routes.cpp \
+		dtmfversion.cpp \
+		processevents.cpp \
+		amiaction.cpp \
+		amiproc.cpp \
+		logger.cpp \
+		util.cpp \
+		WebConfig.cpp \
+		amidtmf2.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 CFLAGS_RELEASE = -O2 -fPIC

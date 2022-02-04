@@ -41,7 +41,19 @@ typedef struct WS_INFO_T {
 		puser->type = ws_base;
 		return puser;
 	}
-
+	void init() {
+		opcode = 0;
+		data_len = 0;
+		mask[0] = mask[1] = mask[2] = mask[3] = 0;
+		data = NULL;
+		step = 0;
+		is_masked = 0;
+		is_text = 0;
+		is_bin = 0;
+		is_close = 0;
+		is_ping = 0;
+		is_pong = 0;
+	}
 } WS_INFO, *PWS_INFO;
 
 extern map<const char*, void*> g_websocket;
