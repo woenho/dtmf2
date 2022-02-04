@@ -270,7 +270,7 @@ PAMI_RESPONSE amiSendDtmf(const char* caller, const char* dir, const char* dtmf)
 	if (nDir) {
 		if (strcmp(dir, "callee")) {
 			resp = new AMI_RESPONSE;
-			resp->result = 400;
+			resp->result = 404;
 			sprintf(resp->msg, "dir is not corected...dir=%s", dir);
 			return resp;
 		}
@@ -280,7 +280,7 @@ PAMI_RESPONSE amiSendDtmf(const char* caller, const char* dir, const char* dtmf)
 		conft("channel get not found(caller=%s)\n", caller);
 		resp = new AMI_RESPONSE;
 		resp->result = 404;
-		sprintf(resp->msg, "channel get not found(caller=%s)\n", caller);
+		sprintf(resp->msg, "channel get not found(caller=%s)", caller);
 		return resp;
 	}
 
@@ -314,7 +314,7 @@ PAMI_RESPONSE amiSendDtmf(const char* caller, const char* dir, const char* dtmf)
 	}
 	else {
 		resp = new AMI_RESPONSE;
-		resp->result = 400;
+		resp->result = 404;
 		sprintf(resp->msg, "maybe dtmf is empty??");
 	}
 	return resp;
@@ -336,7 +336,7 @@ PAMI_RESPONSE amiBlindTransfer(const char* caller, const char* callee, const cha
 		conft("channel get not found(caller=%s)\n", caller);
 		resp = new AMI_RESPONSE;
 		resp->result = 404;
-		sprintf(resp->msg, "channel get not found(caller=%s)\n", caller);
+		sprintf(resp->msg, "channel get not found(caller=%s)", caller);
 		return resp;
 	}
 
@@ -355,7 +355,7 @@ PAMI_RESPONSE amiBlindTransfer(const char* caller, const char* callee, const cha
 		);
 		if (resp->result) {
 			resp->result = 500;
-			sprintf(resp->msg, "REFER_HEADER setvar fail:%s\n", get_amivalue(resp->responses, "Message"));
+			sprintf(resp->msg, "REFER_HEADER setvar fail:%s", get_amivalue(resp->responses, "Message"));
 			return resp;
 		}
 		free(resp);
@@ -372,7 +372,7 @@ PAMI_RESPONSE amiBlindTransfer(const char* caller, const char* callee, const cha
 	);
 	if (resp->result) {
 		resp->result = 500;
-		sprintf(resp->msg, "BlindTransfer fail:%s\n", get_amivalue(resp->responses, "Message"));
+		sprintf(resp->msg, "BlindTransfer fail:%s", get_amivalue(resp->responses, "Message"));
 		return resp;
 	}
 

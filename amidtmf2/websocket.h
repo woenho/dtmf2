@@ -46,11 +46,15 @@ typedef struct WS_INFO_T {
 
 extern map<const char*, void*> g_websocket;
 
+void ws_writeping(PTST_SOCKET psocket);
+void ws_writepong(PTST_SOCKET psocket);
 void ws_writedisconnect(PTST_SOCKET psocket, uint16_t status);
 int ws_writetext(PTST_SOCKET psocket, const char* text);
-TST_STAT websocket_alive(PTST_SOCKET psocket);
 TST_STAT websocket(PTST_SOCKET psocket);
 
+
+// 이하는 ws_routes.cpp 용으로 실제 메시지처리 함수 등록
+TST_STAT websocket_alive(PTST_SOCKET psocket);
 
 
 #endif

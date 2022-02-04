@@ -15,6 +15,39 @@ typedef struct http_header {
 
 #define HTTP_MAX_HEADERS	30
 
+typedef struct response_header {
+	char* name;  /* HTTP header name */
+	char* value; /* HTTP header value */
+}RESPONSE_HEADER;
+
+typedef struct http_response_info {
+	const char* http_version;		/* E.g. "1.0", "1.1" */
+	int http_code;					/* 200 ~~ */
+	const char* response_text;
+	int num_headers;				/* Number of HTTP headers */
+	RESPONSE_HEADER http_headers[HTTP_MAX_HEADERS]; /* Allocate maximum headers */
+	const char* html_text;
+	http_response_info() { bzero(this, sizeof(*this)); }
+	bool addHeader(const char* _name, const char* _value){
+		if (num_headers >= HTTP_MAX_HEADERS)
+			return false;
+		http_headers[num_headers].name = strdup(_name);
+		http_headers[num_headers].value = strdup(_value);
+		num_headers++;
+		return true;
+	}
+	void reset() {
+		int i = 0;
+		for (i = 0; i < num_headers; i++) {
+			free(http_headers[i].name); http_headers[i].name = NULL;
+			free(http_headers[i].value); http_headers[i].value = NULL;
+		}
+	}
+	~http_response_info() { 
+		reset();
+	}
+} RESPONSE_INFO, *PRESPONSE_INFO;
+
 typedef struct http_request_info {
 	const char* request_method;		/* "GET", "POST", etc */
 	char* request_uri;				/* URL-decoded URI (absolute or relative,* as in the request) */
@@ -35,12 +68,21 @@ typedef struct http_request_info {
 extern map<const char*, void*> g_route;
 
 const char* get_httpheader(REQUEST_INFO& req, const char* header_name);
+void response_http(PTST_SOCKET psocket, PRESPONSE_INFO presp);
 TST_STAT http(PTST_SOCKET psocket);
+
+
+
 // 이하는 routes.cpp 것
 TST_STAT http_dtmf(PTST_SOCKET psocket);
 TST_STAT http_transfer(PTST_SOCKET psocket);
 TST_STAT http_alive(PTST_SOCKET psocket);
 
+
+// ---------------------------------------------
+// CQueryString클래스는 http url 파싱용 클래스 이다,
+// websocekt으로 들어온 url 포맷도 같은방식으로 처리하도록 한다
+// ---------------------------------------------
 class CQueryString
 {
 public:
@@ -106,7 +148,7 @@ public:
 
 		pNow = querystr;
 
-		TRACE("CQueryString::Parse(), querystr=%s:\n", pNow);
+		TRACE("--- CQueryString::Parse(), querystr=%s:\n", pNow);
 
 		while (pNow && *pNow)
 		{

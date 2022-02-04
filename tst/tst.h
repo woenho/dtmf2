@@ -77,7 +77,7 @@ namespace tst {
 	// sock_sub: 소켓타입이 sock_listen 인 소켓으로 부터 accept 받은 서브 소켓
 	// sock_listen: tstpool 가 서버모드로 동작할 때 listen 한 소켓
 	// sock_user(n): 사용자가 별도 관리하고 싶은 소켓의 그룹을 분류하는 방식
-	typedef enum { sock_sub = 0, sock_listen, sock_client, sock_user1, sock_user2, sock_user3 } TST_SOCKETTYPE;
+	typedef enum { sock_sub = 0, sock_websocket, sock_listen, sock_client, sock_user1, sock_user2, sock_user3 } TST_SOCKETTYPE;
 	// 워크 쓰레드의 현재 상태
 	typedef enum { tst_suspend = 0, tst_run, tst_send, tst_reconnected, tst_disconnect, tst_exit = 9, tst_exited } TST_STAT;
 

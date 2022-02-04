@@ -209,6 +209,32 @@ int get_strftime(char* time_buffer, size_t len)
 	);
 }
 
+void get_idcheck(char id[], char check[])
+{
+	// id, check의 크기는 최소한 9자리 이상이어야 한다
+	bzero(id, 9);
+	bzero(check, 9);
+
+	int sep, length;
+	length = rand() % 3 + 5;
+	int i;
+	for (i = 0; i < length; i++) {
+		sep = rand() % 3;
+		id[i] = sep == 0 ? rand() % 26 + 'a' // 'a~z'
+			: sep == 1 ? rand() % 10 + '0' // 'a~z'
+			: rand() % 26 + 'A'; // 'A~Z'
+	}
+	length = rand() % 3 + 5;
+	for (i = 0; i < length; i++) {
+		sep = rand() % 3;
+		check[i] = sep == 0 ? rand() % 26 + 'a' // 'a~z'
+			: sep == 1 ? rand() % 26 + 'a' // 'a~z'
+			: rand() % 26 + 'A'; // 'A~Z'
+	}
+	check[4] = id[1];
+	check[0] = id[3];
+}
+
 /* Callback for handling data received from the server */
 static int
 websocket_client_data_handler(struct mg_connection *conn,
@@ -262,7 +288,7 @@ websocket_client_data_handler(struct mg_connection *conn,
 	/* It we got a websocket TEXT message, handle it ... */
 	if (is_text) {
 		// struct tmsg_list_elem *p;
-		if ( ++udata->count >= TERM_CHECK || (memcmp(data, "{\"code\":201", 11))) {
+		if ( ++udata->count >= TERM_CHECK || (memcmp(data, "{\"code\": 201", 12))) {
 			data[data_len] = '\0';
 			conft("Client received %lu bytes of %s data from server: %s"
 				, (long unsigned)data_len
@@ -273,7 +299,7 @@ websocket_client_data_handler(struct mg_connection *conn,
 			if (udata->count >= TERM_CHECK) {
 				udata->count = 0;
 			}
-			if (!memcmp(data, "{\"code\":409", 11)) {
+			if (!memcmp(data, "{\"code\": 409", 12)) {
 				// 다음 관리자 프로그램이 연결되어 있는 상태다 종료하자
 				if (g_sd > 0)
 					close(g_sd);
@@ -353,10 +379,9 @@ void
 run_websocket_client(const char *host,
                      int port,
                      int secure,
-                     const char *path,
-                     const char *greetings)
+                     const char *uri)
 {
-	char err_buf[100] = {0};
+	char buf[100] = {0};
 	struct mg_connection *client_conn;
 
 	/* Log first action (time = 0.0) */
@@ -371,9 +396,9 @@ run_websocket_client(const char *host,
 	client_conn = mg_connect_websocket_client(host,
 	                                          port,
 	                                          secure,
-	                                          err_buf,
-	                                          sizeof(err_buf),
-	                                          path,
+	                                          buf,
+	                                          sizeof(buf),
+	                                          uri,
 	                                          NULL,
 	                                          websocket_client_data_handler,
 	                                          websocket_client_close_handler,
@@ -382,21 +407,38 @@ run_websocket_client(const char *host,
 
 	/* Check if connection is possible */
 	if (client_conn == NULL) {
-		conft("mg_connect_websocket_client error: %s", err_buf);
+		conft("mg_connect_websocket_client error: %s", buf);
 		// DTMF Server start
 		startup();
 		return;
 	}
 
+	char id[12];
+	char check[12];
+	int log_count = 0;
+	int log_display = atoi(getenv("LOG_DISPLAY") ? getenv("LOG_DISPLAY") : "120");
+	if (log_display < 10)
+		log_display = 10;
+
 	/* Does the server play "ping pong" ? */
 	while (g_Run) {
+		
+		get_idcheck(id, check);
+		sprintf(buf, "id=%s&check=%s", id, check);
 		udata->send_last = time(NULL);
+		
 		mg_websocket_client_write(client_conn,
 			MG_WEBSOCKET_OPCODE_TEXT,
-			greetings,
-			strlen(greetings));
+			buf,
+			strlen(buf));
+		
+		if (++log_count > log_display) {
+			printf("check %d times request:\n%s", log_display, buf);
+			fflush(stdout);
+		}
+
 		int nTry;
-		for(nTry=10;g_Run&&nTry;nTry--)
+		for (nTry = 10; g_Run && nTry; nTry--)
 			usleep(500000);
 	}
 
@@ -511,9 +553,6 @@ void run_http_client(const char* host, int port)
 {
 	// amidtmf2로 http연결하여 보안처리된 id & check를 주고 받는다.....
 	struct sockaddr_in server;
-	time_t now;
-	time(&now);
-	srand(now);
 
 	// 연결을 한다
 	int dtmf_sd = tcp_connect(host, port, &server);
@@ -533,7 +572,7 @@ void run_http_client(const char* host, int port)
 
 	int nStep = 1;
 	int log_count = 0;
-	int log_display = atoi(getenv("LOG_DISPLAY"));
+	int log_display = atoi(getenv("LOG_DISPLAY") ? getenv("LOG_DISPLAY") : "120");
 	if (log_display < 10)
 		log_display = 10;
 
@@ -552,25 +591,7 @@ void run_http_client(const char* host, int port)
 			// rand() 로 임의 값을 생성하고 이를 check에 맞춘다
 			if (nStep == 1) {
 				// /keepalive 메시지를 보낸다
-				bzero(id, sizeof(id));
-				bzero(check, sizeof(check));
-				int sep, length;
-				length = rand() % 3 + 5;
-				for (rc = 0; rc < length; rc++) {
-					sep = rand() % 3;
-					id[rc] = sep==0 ? rand() % 26 + 'a' // 'a~z'
-						: sep == 1 ? rand() % 10 + '0' // 'a~z'
-						: rand() % 26 + 'A'; // 'A~Z'
-				}
-				length = rand() % 3 + 5;
-				for (rc = 0; rc < length; rc++) {
-					sep = rand() % 3;
-					check[rc] = sep == 0 ? rand() % 26 + 'a' // 'a~z'
-						: sep == 1 ? rand() % 26 + 'a' // 'a~z'
-						: rand() % 26 + 'A'; // 'A~Z'
-				}
-				check[4] = id[1];
-				check[0] = id[3];
+				get_idcheck(id, check);
 
 				checked_len = sprintf(buf,
 					"GET /keepalive?id=%s&check=%s HTTP/1.0\r\n"
@@ -689,7 +710,7 @@ void run_http_client(const char* host, int port)
 				}
 				fflush(stdout);
 			}
-			// 나머지 버퍼는 비운다... 혹시 쓰레기 청소.
+			// 나머지 버퍼는 비운다... 혹은 쓰레기 청소.
 			do {
 				ioctl(dtmf_sd, SIOCINQ, &checked_len);
 				if(checked_len)
@@ -709,13 +730,16 @@ int main(int argc, char *argv[])
 	}
 
 	// const char *greetings = "Hello World!";
-	const char *greetings = "user=callgate&pw=vai&cmd=live";
+	// const char *greetings = "user=callgate&pw=vai&cmd=live";
 
 	const char *host = "127.0.0.1";
-	const char *path = "/ws";
+	const char *uri = "/alive";
 
 	int port_no = 4061;
-	char* logfile = "/var/log/dtmf/processmon.log";
+	char logpath[512] = { 0, };
+	char* home = getenv("HOME");
+	sprintf(logpath, "%s/bin/log/dtmf/processmon.log", home ? home : ".");
+	char* logfile = logpath;
 	if (argc > 1) {
 		port_no = atoi(argv[1]);
 		if (argc > 2) {
@@ -791,11 +815,15 @@ int main(int argc, char *argv[])
 	if (signal_init(&sig_handler, 1) < 0)
 		return -1;
 
-	char* usews = getenv("USEWS");
+	time_t now;
+	time(&now);
+	srand(now);
+
+	char* usews = getenv("USEHTTP");
 	if (usews && !strcmp(usews, "YES")) {
-		run_websocket_client(host, port, secure, path, greetings);
-	} else {
 		run_http_client(host, port);
+	} else {
+		run_websocket_client(host, port, secure, uri);
 	}
 	if(g_sd > 0)
 		close(g_sd);

@@ -116,6 +116,7 @@ extern "C"
 	char* trim(char* str);
 	char* rtrim(char* str);
 	char* ltrim(char* str);
+	char* strrtrim(char* str, const char* delimiter);
 
 	void erase_tcp_buffer(int sd, char* buf, int size);
 	bool isNumeric(const char* data, int nLen);

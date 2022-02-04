@@ -665,7 +665,7 @@ char* trim(char* str)
 
 char* rtrim(char* str)
 {
-	if (!str)
+	if (!str || !*str)
 		return str;
 
 	char* p = str + strlen(str) - 1;
@@ -680,7 +680,7 @@ char* rtrim(char* str)
 
 char* ltrim(char* str)
 {
-	if (!str)
+	if (!str || !*str)
 		return str;
 
 	char* src = str;
@@ -694,6 +694,31 @@ char* ltrim(char* str)
 
 	while (src <= p)
 		*str++ = *src++;
+
+	return str;
+}
+
+char* strrtrim(char* str, const char* delimiter)
+{
+	if (!str || !*str || !delimiter || !*delimiter)
+		return str;
+
+	char* p = str + strlen(str) - 1;
+	char* save = p;
+	int i;
+	while (p >= str) {
+		for (i = 0; delimiter[i]; i++) {
+			if (*p == delimiter[i]) {
+				p--;
+				break;
+			}
+		}
+		if (!delimiter[i])
+			break;
+	}
+
+	if (++p <= save)
+		p = '\0';
 
 	return str;
 }

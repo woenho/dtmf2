@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="amiaction.cpp" />
+    <ClCompile Include="amidtmf2.cpp" />
+    <ClCompile Include="amiproc.cpp" />
+    <ClCompile Include="http.cpp" />
+    <ClCompile Include="logger.cpp" />
+    <ClCompile Include="processevents.cpp" />
+    <ClCompile Include="http_routes.cpp" />
+    <ClCompile Include="util.cpp" />
+    <ClCompile Include="WebConfig.cpp" />
+    <ClCompile Include="asterisk\channels\chan_pjsip.c">
+      <Filter>asterisk\channels</Filter>
+    </ClCompile>
+    <ClCompile Include="sha1.c" />
+    <ClCompile Include="websocket.cpp" />
+    <ClCompile Include="ws_routes.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="amiaction.h" />
+    <ClInclude Include="amiproc.h" />
+    <ClInclude Include="http.h" />
+    <ClInclude Include="logger.h" />
+    <ClInclude Include="processevents.h" />
+    <ClInclude Include="util.h" />
+    <ClInclude Include="WebConfig.h" />
+    <ClInclude Include="sha1.h" />
+    <ClInclude Include="websocket.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+    <None Include="amidtmf.conf" />
+    <None Include="amidtmf_d.conf" />
+    <None Include="dtmf" />
+    <None Include="Makefile" />
+    <None Include="amidtmf_t.conf" />
+    <None Include="amidtmf_r.conf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="asterisk">
+      <UniqueIdentifier>{e0c57491-ed79-40b1-88dd-dd1e2b2bc59f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="asterisk\channels">
+      <UniqueIdentifier>{150eeabe-ca1b-491a-bd4c-249a3603c6c1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

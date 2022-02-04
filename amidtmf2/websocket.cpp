@@ -1,3 +1,13 @@
+/*
+* websocket 수신에있어서 코어모듈이다. 수정에 신중함이 필요하다.
+* 소켓을 통하여 들어온 HTTP메시지를 http.cpp 파일에서 websocket 프로토콜로 업그레이드 한 후에 호출된다
+* 이후에는 http.cpp 에서 처리하지 않고 바로 websocket() 함수가 호출된다.
+* 기본적으로 모든 메시지의 패킷을 수신한 후에 g_websocket 에 등록한 사용자 함수를 호출해 준다.
+* 이 사용자 함수들은 ws_routes.cpp에 등록하도록 한다.
+* 웹소켓 최초 호출시 하용된 route 정보를 이용하여 호출되는 사용자 함수가 결정된다.
+* 이후 해당 웹소켓데이타는 모두 해당 사용자 함수에서 처리된다.
+*/
+
 #include "websocket.h"
 #include "util.h"
 
@@ -5,10 +15,24 @@ extern int log_event_level;
 
 map<const char*, void*> g_websocket;
 
+void ws_writeping(PTST_SOCKET psocket) {
+	char buf[4];
+	buf[0] = 0x80 /*0x80은 FIN설정용*/ | (0x0f & MG_WEBSOCKET_OPCODE_PING);
+	buf[1] = 0; // 연결해제 상태코드로 이건 4바이트다
+	write(psocket->sd, buf, 2);
+}
+
+void ws_writepong(PTST_SOCKET psocket) {
+	char buf[4];
+	buf[0] = 0x80 /*0x80은 FIN설정용*/ | (0x0f & MG_WEBSOCKET_OPCODE_PONG);
+	buf[1] = 0; // 연결해제 상태코드로 이건 4바이트다
+	write(psocket->sd, buf, 2);
+}
+
 void ws_writedisconnect(PTST_SOCKET psocket, uint16_t status) {
 	char buf[4];
 	int req_len = 2; // 1002 상태코드 -> 프로토콜 오류
-	buf[0] = 0x80 | (0x0f & MG_WEBSOCKET_OPCODE_CONNECTION_CLOSE);
+	buf[0] = 0x80 /*0x80은 FIN설정용*/ | (0x0f & MG_WEBSOCKET_OPCODE_CONNECTION_CLOSE);
 	buf[1] = (unsigned char)req_len; // 연결해제 상태코드로 이건 4바이트다
 	uint16_t* scode = (uint16_t*)&buf[2];
 	*scode = htons(1000); // status 1002 하니까 포스트맨이 프로토콜오류처리하네.. 정상종료처리로 변경
@@ -18,8 +42,13 @@ void ws_writedisconnect(PTST_SOCKET psocket, uint16_t status) {
 int ws_writetext(PTST_SOCKET psocket, const char* text) {
 	char buf[10];
 
+	if (!text)
+		return -1;
+
+	TRACE("--ws- send\n%s\n", text);
+
 	size_t req_len = strlen(text);
-	buf[0] = 0x80 | (0x0f & MG_WEBSOCKET_OPCODE_TEXT);
+	buf[0] = 0x80 /*0x80은 FIN설정용*/ | (0x0f & MG_WEBSOCKET_OPCODE_TEXT);
 
 	if (req_len < 126) {
 		buf[1] = (unsigned char)req_len;
@@ -32,7 +61,7 @@ int ws_writetext(PTST_SOCKET psocket, const char* text) {
 	} else {
 		buf[1] = (unsigned char)127;
 		uint64_t* plen = (uint64_t*)&buf[2];
-
+		*plen = req_len;
 		write(psocket->sd, buf, 10);
 	}
 	
@@ -48,6 +77,7 @@ TST_STAT websocket(PTST_SOCKET psocket) {
 
 	// 처음 연결된 것인가?
 	if (psocket->type == sock_sub) {
+		TRACE("--ws- connected\n");
 		psocket->type = sock_websocket;
 		//data_len = sprintf(data, "{\"code\":%03d, \"msg\":\"%s\"}", 200, "ok. I will disconnect websocket session");
 		// 처음 연결되었을 때  하고 싶은것이 있다면.....
@@ -63,6 +93,7 @@ TST_STAT websocket(PTST_SOCKET psocket) {
 			// printf(":%s: http func address -> %lX\n", it->first, ADDRESS(it->second));
 			if (!strcmp(req.request_uri, it->first)) {
 				ws.websocket_func = (tstFunction)it->second;
+				TRACE("--ws- ws routes-> %s\n", req.request_uri);
 				break;
 			}
 		}
@@ -162,6 +193,8 @@ TST_STAT websocket(PTST_SOCKET psocket) {
 
 	WS_INFO& wsinfo = *(PWS_INFO)psocket->user_data->s;
 
+	TRACE("--ws- recv message %s\n", wsinfo.step ? "end" : "start");
+
 	// 이미 기본 헤더를 받은 경우의 처리 ( 헤더를 받고 데이타가 커서 데이타 수신일수도 있다.)
 	if (!wsinfo.step) {
 		int m_len = 4;
@@ -241,7 +274,7 @@ TST_STAT websocket(PTST_SOCKET psocket) {
 	// 모든 데이타 받기가 종료된 다음 복호화 작업을 한다
 	if (wsinfo.is_masked) {
 		size_t i;
-		TRACE("completed websocket data length=%dl", wsinfo.data_len);
+		TRACE("--ws- completed websocket data length=%ld\n", wsinfo.data_len);
 		for (i = 0; i < (size_t)wsinfo.data_len; i++) {
 			wsinfo.data[i] ^= wsinfo.mask[i & 3];
 		}

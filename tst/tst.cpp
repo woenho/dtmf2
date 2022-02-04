@@ -368,39 +368,40 @@ void* tst_main(void* param)
 		// 즉 사용되고 있는 소켓에는 이벤트가 발생하지 않는다는 것이다(EPOLLONESHOT 플러그 반드시 사용)
 		// 그러므로 현재 소켓이 아닌 다른 소켓에 작업을 하려면 그 소켓을 사용하는 동안 삭제될 수 있으므로 매우 신중해야한다.
 		it = pool->m_connect.find(sd);
-		if (it != pool->m_connect.end()) {
-			socket = it->second;
+		if (it == pool->m_connect.end()) {
+			// 등독되지 않은 소켓이 발견되었다 뭐지??.....
+			TRACE("map에 등록되지 않은 소켓 번호 발생.... sd=%d", sd);
+		}
+
+		socket = it->second;
 #if defined(ROUND_ROBIN)
-			i = i >= pool->m_thread_count ? 0 : i;
-			for (; i < pool->m_thread_count; i++) {
+		i = i >= pool->m_thread_count ? 0 : i;
+		for (; i < pool->m_thread_count; i++) {
 #else
-			// 항상 0번부터 찾는 이유
-			// 1. 워크쓰레드 중 몇 개가 항상 사용 중인지, 최대 동시 실행쓰레드가 몇인지 실행건수로 확인할 수 있다.
-			// 2. 이를 통하여 적절한 쓰레드수를 설정하도록 돕는다
-			// 3. 쓰레드 수는 보통 많이 설정 하지 않으므로 시스템 성능상 별 차이가 없다.
-			for (i = 0; i < pool->m_thread_count; i++) {
+		// 항상 0번부터 찾는 이유
+		// 1. 워크쓰레드 중 몇 개가 항상 사용 중인지, 최대 동시 실행쓰레드가 몇인지 실행건수로 확인할 수 있다.
+		// 2. 이를 통하여 적절한 쓰레드수를 설정하도록 돕는다
+		// 3. 쓰레드 수는 보통 많이 설정 하지 않으므로 시스템 성능상 별 차이가 없다.
+		for (i = 0; i < pool->m_thread_count; i++) {
 #endif
-				// 모든 쉬는 쓰레드를 확인하며 하나씩 일을 할당하고 깨운다
-				if (pool->m_workers[i].thread_stat < tst_run) {
-					pthread_mutex_lock(&pool->m_workers[i].mutex);
-					pool->m_workers[i].thread_stat = tst_run;
-					socket->events = events;
-					if (socket->recv) socket->recv->checked_len = 0;
-					if (socket->send) socket->send->checked_len = 0;
-					if ((events & EPOLLIN || events & EPOLLPRI) && socket->recv) {
-						socket->recv->checked_len = check_len;
-					}
-					else if (events & EPOLLOUT && socket->send) {	// EPOLLOUT 인 경우 사용자 함수에서 신중히 처리 필요함
-						socket->send->checked_len = check_len;
-					}
-					pool->m_workers[i].tst_socket = socket;
-					TRACE("tst request a job sd=%d, thread no=%d, socket=%lX\n", sd, i, ADDRESS(pool->m_workers[i].tst_socket));
-					pthread_cond_signal(&pool->m_workers[i].hEvent);
-					pthread_mutex_unlock(&pool->m_workers[i].mutex);
-					nCheckCount--;
-					break;
-				}				
-			}
+			// 모든 쉬는 쓰레드를 확인하며 하나씩 일을 할당하고 깨운다
+			if (pool->m_workers[i].thread_stat < tst_run) {
+				pthread_mutex_lock(&pool->m_workers[i].mutex);
+				pool->m_workers[i].thread_stat = tst_run;
+				socket->events = events;
+				if ((events & EPOLLIN || events & EPOLLPRI) && socket->recv) {
+					socket->recv->checked_len = check_len;
+				}
+				else if (events & EPOLLOUT && socket->send) {	// EPOLLOUT 인 경우 사용자 함수에서 신중히 처리 필요함
+					socket->send->checked_len = check_len;
+				}
+				pool->m_workers[i].tst_socket = socket;
+				TRACE("tst request a job sd=%d, thread no=%d, socket=%lX\n", sd, i, ADDRESS(pool->m_workers[i].tst_socket));
+				pthread_cond_signal(&pool->m_workers[i].hEvent);
+				pthread_mutex_unlock(&pool->m_workers[i].mutex);
+				nCheckCount--;
+				break;
+			}				
 		}
 	}
 
@@ -562,8 +563,9 @@ void* tst_work(void* param)
 						nStat = ioctl(socket->sd, SIOCINQ, &data->checked_len);
 						if (nStat < 0) {
 							// socket error
-						}
-						else {
+							TRACE("tst workthread auto read from(sd:%d) ioctl() error=%d\n", socket->sd, nStat);
+						} else {
+							TRACE("tst workthread auto read from(sd:%d) checked_len=%d, req_pos=%d, req_len=%d, com_len=%d\n", socket->sd, data->checked_len, data->req_pos, data->req_len, data->com_len);
 #ifdef READ_SEREAL
 							while (data->checked_len-- > 0 && data->result_len < data->req_len) {
 								data->result_len += read(socket->sd, &data->s[data->result_len], 1);
@@ -574,12 +576,12 @@ void* tst_work(void* param)
 							data->com_len += read(socket->sd, data->s + data->req_pos + data->com_len, data->checked_len);
 #endif
 							if (data->com_len >= data->req_len) {
+								TRACE("tst workthread auto read from(sd:%d) completed\n", socket->sd);
 								data->checked_len = 0;
 								next = tst_run;
 							}
 						}
 						clock_gettime(CLOCK_REALTIME, &data->trans_time);
-						TRACE("tst workthread auto read from(sd:%d) req_len=%d com_len=%d:%s:\n", socket->sd, data->req_len, data->com_len, p);
 					}
 				} else {
 					next = tst_run;
@@ -826,13 +828,13 @@ int tstpool::destroy(uint64_t wait_time)
     map<int, PTST_SOCKET>::iterator it_connect;
     for (it_connect = m_connect.begin(); it_connect != m_connect.end(); it_connect++ ) {
 		socket = it_connect->second;
-		memset(&ev, 0x00, sizeof(ev));
-		ev.events = TST_EPOLL_BASE_EVENTS;
-		ev.data.fd = socket->sd;
-		epoll_ctl(m_epfd, EPOLL_CTL_DEL, socket->sd, &ev);
-		TRACE("[epoll_ctl(EPOLL_CTL_DEL)] sd:%d, deleted\n", ev.data.fd);
+		if (socket->sd > 0) {
+			memset(&ev, 0x00, sizeof(ev));
+			ev.events = TST_EPOLL_BASE_EVENTS;
+			ev.data.fd = socket->sd;
+			epoll_ctl(m_epfd, EPOLL_CTL_DEL, socket->sd, &ev);
+			TRACE("[epoll_ctl(EPOLL_CTL_DEL)] sd:%d, deleted\n", ev.data.fd);
 
-		if (socket->sd > INVALID_SOCKET) {
 			//struct linger optLinger={1,0};//linger off! 송신 소켓버퍼에 아직 남아있는 데이터는 버려 버린다(바로리턴)
 			//struct linger optLinger={1,5};//linger off! 송신 소켓버퍼에 아직 남아있는 데이터는 보내고 연결종료(송신완료까지블럭, 5초만 블럭인 시스템도 있고)
 			struct linger optLinger = { 0,0 };//linger on! 송신 소켓버퍼에 아직 남아있는 데이터는 보내고 연결종료(바로리턴,백그라운드처리로time_wait)
@@ -895,32 +897,49 @@ void tstpool::closesocket(int sd)
 	PTST_SOCKET socket = NULL;
 
 	pthread_mutex_lock(&m_mutexConnect);
+
 	map<int,PTST_SOCKET>::iterator it = m_connect.find(sd);
 	if (it != m_connect.end()) {
 		socket = it->second;
 		m_connect.erase(it);
 	}
+
 	pthread_mutex_unlock(&m_mutexConnect);
 
 	TRACE("disconnect sd=%d, client ip=%s, client port=%d\n", socket->sd, inet_ntoa(socket->client.sin_addr), socket->client.sin_port);
 
-	memset(&ev, 0x00, sizeof(ev));
-	ev.events = TST_EPOLL_BASE_EVENTS;
-	ev.data.fd = sd;
-	epoll_ctl(m_epfd, EPOLL_CTL_DEL, sd, &ev);
-	TRACE("[epoll_ctl(EPOLL_CTL_DEL)] sd:%d, deleted\n", ev.data.fd);
+	if (m_fdisconnected)
+		m_fdisconnected(socket);
 
-	if (sd > INVALID_SOCKET) {
+	if (sd > 0) {
+		memset(&ev, 0x00, sizeof(ev));
+		ev.events = TST_EPOLL_BASE_EVENTS;
+		ev.data.fd = sd;
+		epoll_ctl(m_epfd, EPOLL_CTL_DEL, sd, &ev);
+		TRACE("[epoll_ctl(EPOLL_CTL_DEL)] sd:%d, deleted\n", ev.data.fd);
+
 		//struct linger optLinger={1,0};//linger off! 송신 소켓버퍼에 아직 남아있는 데이터는 버려 버린다(바로리턴)
 		//struct linger optLinger={1,5};//linger off! 송신 소켓버퍼에 아직 남아있는 데이터는 보내고 연결종료(송신완료까지블럭, 5초만 블럭인 시스템도 있고)
 		struct linger optLinger = { 0,0 };//linger on! 송신 소켓버퍼에 아직 남아있는 데이터는 보내고 연결종료(바로리턴,백그라운드처리로time_wait)
 		setsockopt(sd, SOL_SOCKET, SO_LINGER, (char*)&optLinger, sizeof(optLinger));
+		
+		// 혹시나 하여 추가함 
+		// 만일 남은 읽을 데이타가 있는 경우 이를 비우지 않으면 다음에 소켓이 열렸을 때, REUSEADDR 로 오픈한 소켓이 이 찌꺼기를 먼저 읽을 수 있다.
+		// 몽땅 비우자
+		char tmp[128];
+		int check_len = 0;
+		int err = ioctl(sd, SIOCINQ, &check_len);
+		while (err == 0 && check_len > 0) {
+			if (check_len > sizeof(tmp))
+				check_len = sizeof(tmp);
+			read(sd, tmp, check_len);
+			err = ioctl(sd, SIOCINQ, &check_len);
+		}
+
 		close(sd);
 	}
 
-	if (m_fdisconnected)
-		m_fdisconnected(socket);
-
 	if(socket)
 		delete socket;	
+
 }

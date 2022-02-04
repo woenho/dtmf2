@@ -138,6 +138,32 @@ void sig_handler(int signo, siginfo_t* info, /*ucontext_t*/void* ucp)
 
 }
 
+TST_STAT dtmf2_disconnected(PTST_SOCKET psocket) {
+	if (!psocket)
+		return tst_suspend;
+
+	if (psocket == ami_socket) {
+		// if (psocket->type == sock_client && psocket->user_data->type == ami_base) {
+			conpt("--- 흐미 ami 끊어졌다.....");
+			ami_socket = NULL;
+		// }
+	} else {
+#ifdef DEBUG
+		conpt("--- disconnected client socket....%s(%s:%d)", __func__, inet_ntoa(psocket->client.sin_addr), ntohs(psocket->client.sin_port));
+#endif
+		if (psocket->type == sock_websocket) {
+			TRACE("--ws- websocket session이 해제되었다.\n");
+			
+			// websocket 해제 시 keepalive 중단 처리필요함
+
+
+
+		}
+	}
+
+	return tst_suspend;
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc == 2 && !strcmp(argv[1], "-v")) {
@@ -215,6 +241,9 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
+	// 연결해제시 호출로 반드시 설정해야한다
+	// ami socket 연결해제시에 전역변수인 ami_socket 초기화가 필요하다
+	server.m_fdisconnected = dtmf2_disconnected;
 	// -------------------------------------------------------------------------------------
 
 	atp_create(atoi(g_cfg.Get("THREAD", "count", "5").c_str()), atpfunc);
@@ -239,7 +268,7 @@ int main(int argc, char* argv[])
 	}
 
 	g_websocket.clear();
-	g_websocket["/ws"] = (void*)websocket_alive;
+	g_websocket["/alive"] = (void*)websocket_alive;
 	for (it = g_route.begin(); it != g_route.end(); it++) {
 		conft(":%s: websocket route func address -> %lX\n", it->first, ADDRESS(it->second));
 	}
