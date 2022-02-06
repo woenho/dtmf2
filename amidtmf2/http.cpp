@@ -85,12 +85,12 @@ void response_http(PTST_SOCKET psocket, PRESPONSE_INFO presp)
 	);
 	int i;
 	for (i = 0; i < presp->num_headers; i++) {
-		sdata.com_len += sprintf(sdata.s + sdata.com_len, "%s: %s\r\n"
+		sdata.com_len += snprintf(sdata.s + sdata.com_len, sdata.s_len - sdata.com_len, "%s: %s\r\n"
 			, presp->http_headers[i].name, presp->http_headers[i].value);
 	}
 
 	if(presp->html_text && *presp->html_text)
-		sdata.com_len += sprintf(sdata.s + sdata.com_len, "Content-Length: %u\r\n\r\n%s\r\n\r\n"
+		sdata.com_len += snprintf(sdata.s + sdata.com_len, sdata.s_len - sdata.com_len, "Content-Length: %u\r\n\r\n%s\r\n\r\n"
 			, (uint32_t)strlen(presp->html_text), presp->html_text);
 
 	TRACE("--http- send\n%s", sdata.s);
