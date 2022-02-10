@@ -4,6 +4,7 @@
 #include "processevents.h"
 
 extern char dtmfCompileDate[20];
+extern int g_processmon_sd;
 
 char cfg_path[512] = { 0 };
 
@@ -149,13 +150,16 @@ TST_STAT dtmf2_disconnected(PTST_SOCKET psocket) {
 		// }
 	} else {
 #ifdef DEBUG
-		conpt("--- disconnected client socket....%s(%s:%d)", __func__, inet_ntoa(psocket->client.sin_addr), ntohs(psocket->client.sin_port));
+		conpt("--- disconnected client socket....type=%d (%s:%d)", psocket->type, inet_ntoa(psocket->client.sin_addr), ntohs(psocket->client.sin_port));
 #endif
 		if (psocket->type == sock_websocket) {
 			TRACE("--ws- websocket session이 해제되었다.\n");
 			
 			// websocket 해제 시 keepalive 중단 처리필요함
-
+			if (g_processmon_sd == psocket->sd) {
+				g_processmon_sd = 0;
+				conpt("--- disconnected processmon socket....sd=%d (%s:%d)", psocket->sd, inet_ntoa(psocket->client.sin_addr), ntohs(psocket->client.sin_port));
+			}
 
 
 		}

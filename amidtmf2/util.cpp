@@ -113,7 +113,7 @@ char* getSHA256(const char* data) {
     bzero(mdString, sha_len);
     int i;
     for (i = 0; i < SHA256_DIGEST_LENGTH; i++)
-        sprintf(&mdString[i * 2], "%02x", (unsigned int)digest[i]);
+        sprintf(&mdString[i * 2], "%02X", digest[i] & 0x7F);
 
     return mdString;
 }
@@ -128,7 +128,7 @@ char* getSHA512(const char* data) {
 	bzero(mdString, sha_len);
     int i;
 	for (i = 0; i < SHA512_DIGEST_LENGTH; i++)
-		sprintf(&mdString[i * 2], "%02x", (unsigned int)digest[i]);
+		sprintf(&mdString[i * 2], "%02X", digest[i] & 0x7F);
 
 	return mdString;
 }
